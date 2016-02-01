@@ -1,35 +1,37 @@
-#include "../header/prototypes.h"
- 
-int main(int argc, char *argv[]){
-    SDL_Event evenements;
-    int terminer = 0;
- 
-    // Initialisation
-    init("OpenStreetMap Render");
-    
-    /*
-    // ESSAIS -------------------------
-    SDL_Rect position;
-    position.x = 0;
-    position.y = 0;
+#include "SDL2/SDL.h"
+#include <stdio.h>
 
-    SDL_Surface *rectangle = NULL;
-    rectangle = SDL_CreateRGBSurface(SDL_SWSURFACE, 220, 180, 32, 0, 0, 0, 0);
-    SDL_FillRect(rectangle, NULL, SDL_MapRGB(ecran->format, 0, 255, 255));
-    SDL_BlitSurface(rectangle, NULL, ecran, &position);
-    //---------------------------------
-    */
-
-    while(!terminer){
-      SDL_WaitEvent(&evenements);
-      if(evenements.window.event == SDL_WINDOWEVENT_CLOSE)
-        terminer = 1;
-
-      draw();
+int main(int argc, char** argv)
+{
+    /* Initialisation simple */
+    if (SDL_Init(SDL_INIT_VIDEO) != 0 )
+    {
+        fprintf(stdout,"Échec de l'initialisation de la SDL (%s)\n",SDL_GetError());
+        return -1;
     }
 
-    //SDL_FreeSurface(rectangle);
+    {
+        /* Création de la fenêtre */
+        SDL_Window* pWindow = NULL;
+        pWindow = SDL_CreateWindow("Ma première application SDL2",SDL_WINDOWPOS_UNDEFINED,
+                                                                  SDL_WINDOWPOS_UNDEFINED,
+                                                                  640,
+                                                                  480,
+                                                                  SDL_WINDOW_SHOWN);
 
-    atexit(cleanup);
-    exit(0);
+        if( pWindow )
+        {
+            SDL_Delay(3000); /* Attendre trois secondes, que l'utilisateur voit la fenêtre */
+
+            SDL_DestroyWindow(pWindow);
+        }
+        else
+        {
+            fprintf(stderr,"Erreur de création de la fenêtre: %s\n",SDL_GetError());
+        }
+    }
+
+    SDL_Quit();
+
+    return 0;
 }
