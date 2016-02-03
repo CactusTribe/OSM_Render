@@ -32,7 +32,7 @@ run:
 	./bin/$(EXEC)
 
 clean:
-	rm -f ./bin/*
+	rm -rf ./bin/*
 
 tar: mrproper
 	tar cf $(EXEC).tar README.md Makefile bin/ src/ header/ include/ lib/ lib64/
