@@ -1,5 +1,6 @@
 CC = gcc
-CFLAGS = -g -Wall 
+CFLAGS = -g -Wall
+EXEC = OSM_Render 
 
 LIB32= ./lib
 LIB64= ./lib64
@@ -25,10 +26,13 @@ endif
 
 
 all:
-	$(CC) $(CFLAGS) ./src/main.c -o ./bin/main $(LIBFLAGS)
+	$(CC) $(CFLAGS) ./src/main.c -o ./bin/$(EXEC) $(LIBFLAGS)
 
 run:
-	./bin/main
+	./bin/$(EXEC)
 
 clean:
 	rm -f ./bin/*
+
+tar: mrproper
+	tar cf $(EXEC).tar README.md Makefile bin/ src/ header/ include/ lib/ lib64/
