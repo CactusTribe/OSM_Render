@@ -1,6 +1,8 @@
 #ifndef _GRAPHIC_H_ 
 #define _GRAPHIC_H_
 
+#include <SDL2/SDL.h>
+
 typedef struct{
 	int r;
 	int g;
@@ -8,6 +10,6 @@ typedef struct{
 	int a;
 } RGBA_COLOR;
 
-void drawRectangle(SDL_Renderer *ren, SDL_Rect *rect, RGBA_COLOR *rgb);
+extern void drawRectangle(SDL_Renderer *, SDL_Rect *, RGBA_COLOR *);
 
 #endif
