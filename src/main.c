@@ -1,8 +1,7 @@
 #include "SDL2/SDL.h"
 #include <stdio.h>
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv){
     SDL_Event evenements;
     int terminer = 0;
 
@@ -14,14 +13,14 @@ int main(int argc, char** argv)
     else{
         /* Création de la fenêtre */
         SDL_Window* pWindow = NULL;
-        pWindow = SDL_CreateWindow("Ma première application SDL2",SDL_WINDOWPOS_UNDEFINED,
+        pWindow = SDL_CreateWindow("OSM_Render",SDL_WINDOWPOS_UNDEFINED,
                                                                   SDL_WINDOWPOS_UNDEFINED,
                                                                   640,
                                                                   480,
                                                                   SDL_WINDOW_SHOWN);
 
         if( pWindow ){
-            //SDL_Delay(3000); /* Attendre trois secondes, que l'utilisateur voit la fenêtre */
+            //SDL_Delay(3000)
             while(!terminer){
               SDL_WaitEvent(&evenements);
               if(evenements.window.event == SDL_WINDOWEVENT_CLOSE)
@@ -36,6 +35,5 @@ int main(int argc, char** argv)
     }
 
     SDL_Quit();
-
     return 0;
 }
