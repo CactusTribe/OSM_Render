@@ -3,14 +3,15 @@
 
 int main(int argc, char** argv)
 {
+    SDL_Event evenements;
+    int terminer = 0;
+
     /* Initialisation simple */
-    if (SDL_Init(SDL_INIT_VIDEO) != 0 )
-    {
+    if (SDL_Init(SDL_INIT_VIDEO) != 0 ){
         fprintf(stdout,"Échec de l'initialisation de la SDL (%s)\n",SDL_GetError());
         return -1;
     }
-
-    {
+    else{
         /* Création de la fenêtre */
         SDL_Window* pWindow = NULL;
         pWindow = SDL_CreateWindow("Ma première application SDL2",SDL_WINDOWPOS_UNDEFINED,
@@ -19,14 +20,17 @@ int main(int argc, char** argv)
                                                                   480,
                                                                   SDL_WINDOW_SHOWN);
 
-        if( pWindow )
-        {
-            SDL_Delay(3000); /* Attendre trois secondes, que l'utilisateur voit la fenêtre */
+        if( pWindow ){
+            //SDL_Delay(3000); /* Attendre trois secondes, que l'utilisateur voit la fenêtre */
+            while(!terminer){
+              SDL_WaitEvent(&evenements);
+              if(evenements.window.event == SDL_WINDOWEVENT_CLOSE)
+                terminer = 1;
+            }
 
             SDL_DestroyWindow(pWindow);
         }
-        else
-        {
+        else{
             fprintf(stderr,"Erreur de création de la fenêtre: %s\n",SDL_GetError());
         }
     }
