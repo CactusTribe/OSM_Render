@@ -28,11 +28,16 @@ int main(int argc, char** argv){
                                                               480,
                                                               SDL_WINDOW_SHOWN);
 
-    SDL_SetRenderDrawBlendMode(ren,SDL_BLENDMODE_BLEND);
-    SDL_SetRenderDrawColor(ren, 50, 50, 150, 255);
-    SDL_RenderFillRect(ren,&r);
-    SDL_RenderPresent(ren);
+    ren = SDL_CreateRenderer(pWindow, 0, 0);
 
+    SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
+    SDL_RenderClear(ren);
+
+    SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(ren, 50, 50, 150, 255);
+    SDL_RenderFillRect(ren, &r);
+    SDL_RenderPresent(ren);
+    
 
     if( pWindow ){
         //SDL_Delay(3000)
