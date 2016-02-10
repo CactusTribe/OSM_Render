@@ -29,8 +29,8 @@ int main(int argc, char** argv){
     SDL_RenderClear(ren);
 
     SDL_Rect r;
-    r.x = 50;
-    r.y = 50;
+    r.x = 200;
+    r.y = 200;
     r.w = 200;
     r.h = 60;
 

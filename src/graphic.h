@@ -10,8 +10,9 @@ typedef struct{
 	int a;
 } RGBA_COLOR;
 
+// Remplissage de points dans le sens horraire (adoption de la convention xml plus tard)
 typedef struct{
-	SDL_Point *points;
+	SDL_Point *points; 
 	int nbPoints;
 } POLYGON;
 
