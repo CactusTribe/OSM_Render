@@ -40,7 +40,23 @@ int main(int argc, char** argv){
     color.b = 0;
     color.a = 255;
     
-    drawRectangle(ren, &r, &color);
+    //drawRectangle(ren, &r, &color);
+
+    POLYGON p;
+    SDL_Point p1;
+    SDL_Point p2;
+    SDL_Point p3;
+    p1.x = 50;
+    p1.y = 50;
+    p2.x = 100;
+    p2.y = 100;
+    p3.x = 100;
+    p3.y = 200;
+    SDL_Point points[] = {p1, p2, p3, p1};
+    p.points=points; 
+    p.nbPoints = 4;
+
+    drawPolygon(ren, &p, &color);
 
     if( pWindow ){
         //SDL_Delay(3000)
