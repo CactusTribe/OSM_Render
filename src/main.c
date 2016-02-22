@@ -26,40 +26,28 @@ int main(int argc, char** argv){
     ren = SDL_CreateRenderer(pWindow, 0, 0);
 
     SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
-    SDL_RenderClear(ren);
+    SDL_RenderClear(ren); // Clear la fenêtre
 
-    SDL_Rect r;
-    r.x = 200;
-    r.y = 200;
-    r.w = 200;
-    r.h = 60;
+    SDL_Rect r = {200,200,200,60};
 
-    RGBA_COLOR color;
-    color.r = 255;
-    color.g = 0;
-    color.b = 0;
-    color.a = 255;
+    RGBA_COLOR red = {255, 0, 0, 255};
+    RGBA_COLOR green = {0, 255, 0, 255};
+    RGBA_COLOR blue = {0, 0, 255, 255};
+    RGBA_COLOR black = {0, 0, 0, 255};
     
-    //drawRectangle(ren, &r, &color);
+    drawRectangle(ren, &r, &blue);
 
-    POLYGON p;
-    SDL_Point p1;
-    SDL_Point p2;
-    SDL_Point p3;
-    p1.x = 50;
-    p1.y = 50;
-    p2.x = 100;
-    p2.y = 100;
-    p3.x = 100;
-    p3.y = 200;
+    SDL_Point p1 = {50,50};
+    SDL_Point p2 = {100,100};
+    SDL_Point p3 = {100,200};
     SDL_Point points[] = {p1, p2, p3, p1};
-    p.points=points; 
-    p.nbPoints = 4;
+    POLYGON p = {points, 4};
 
-    drawPolygon(ren, &p, &color);
+    drawPolygon(ren, &p, &red);
+
+    SDL_RenderPresent(ren); // Affiche les modifications
 
     if( pWindow ){
-        //SDL_Delay(3000)
         while(!terminer){
           SDL_WaitEvent(&evenements);
           if(evenements.window.event == SDL_WINDOWEVENT_CLOSE)

@@ -1,19 +1,22 @@
 #include "graphic.h"
 
 void drawRectangle(SDL_Renderer *ren, SDL_Rect *rect, RGBA_COLOR *rgb){
-
   SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
   SDL_SetRenderDrawColor(ren, rgb->r, rgb->g, rgb->b, rgb->a);
   SDL_RenderFillRect(ren, rect);
-  SDL_RenderPresent(ren);
 }
 
 void drawPolygon(SDL_Renderer *ren, POLYGON *p, RGBA_COLOR *rgb) {
 	SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
   SDL_SetRenderDrawColor(ren, rgb->r, rgb->g, rgb->b, rgb->a);
   SDL_RenderDrawLines(ren, p->points, p->nbPoints);
-  SDL_RenderPresent(ren);
 }
+
+void drawPoint(SDL_Renderer *ren, int x, int y, RGBA_COLOR *rgb) {
+  SDL_SetRenderDrawColor(ren, rgb->r, rgb->g, rgb->b, rgb->a);
+  SDL_RenderDrawPoint(ren, x, y);
+}
+
 
 void fill_poly(SDL_Renderer *ren, POLYGON *p){
 	SDL_Point topLeft = p->points[0], botRight = p->points[0];
