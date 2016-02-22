@@ -18,6 +18,9 @@ typedef struct{
 
 extern void drawRectangle(SDL_Renderer *, SDL_Rect *, RGBA_COLOR *);
 extern void drawPolygon(SDL_Renderer *ren, POLYGON *p, RGBA_COLOR *rgb);
-extern void drawPoint(SDL_Renderer *ren, int x, int y, RGBA_COLOR *rgb);
+extern void drawPoint(SDL_Renderer *ren, SDL_Point *p, RGBA_COLOR *rgb);
+
+extern int pointInPolygon(SDL_Point *pt, POLYGON *p);
+extern void fill_poly(SDL_Renderer *ren, POLYGON *p, RGBA_COLOR *rgb);
 
 #endif

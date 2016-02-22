@@ -37,15 +37,20 @@ int main(int argc, char** argv){
     
     drawRectangle(ren, &r, &blue);
 
-    SDL_Point p1 = {50,50};
-    SDL_Point p2 = {100,100};
-    SDL_Point p3 = {100,200};
-    SDL_Point points[] = {p1, p2, p3, p1};
-    POLYGON p = {points, 4};
+    SDL_Point pt1 = {50,50};
+    SDL_Point pt2 = {100,50};
+    SDL_Point pt3 = {100,200};
+    SDL_Point points[] = {pt1, pt2, pt3};
+    POLYGON p = {points, 3};
 
     drawPolygon(ren, &p, &red);
 
+    SDL_Point pt4 = {60,51};
+    drawPoint(ren, &pt4, &black);
+
     SDL_RenderPresent(ren); // Affiche les modifications
+
+    printf("Point in poly = %d\n", pointInPolygon(&pt4, &p));
 
     if( pWindow ){
         while(!terminer){
