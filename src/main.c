@@ -20,12 +20,13 @@ int main(int argc, char** argv){
     SDL_Event evenements;
     int terminer = 0;
 
-// OSM_Bounds bounds;
+    // OSM_Bounds bounds;
+    // getOSM_Bounds("./src/model/test.osm", &bounds);
+    // printOSM_Bounds( bounds);
 
-// getOSM_Bounds("./src/model/test.osm", &bounds);
-
-// printOSM_Bounds( bounds);
-
+    OSM_Node node1;
+    getOSM_Node("./src/model/test.osm", &node1);
+    printOSM_Node(node1);
 
     /* Initialisation */
     if (SDL_Init(SDL_INIT_VIDEO) != 0 ){

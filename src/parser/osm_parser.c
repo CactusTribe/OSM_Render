@@ -98,6 +98,61 @@ parser_error_t getOSM_Bounds(const char* filename, OSM_Bounds* bounds)
 	return(PARSER_SUCESS);
 }
 
+parser_error_t getOSM_Node(const char* filename, OSM_Node* node){
+
+	xmlXPathObjectPtr xpathObj;
+	xmlNodeSetPtr nodes;
+  xmlNodePtr node_node;
+  parser_error_t error;
+  int size;
+	
+	error= execute_xpath_expression(filename, "/osm/node",  &xpathObj);
+	if(error != PARSER_SUCESS){
+		return error;
+	}
+
+	nodes =  xpathObj->nodesetval;
+	size = (nodes) ? nodes->nodeNr : 0;
+
+	if(size != 1)
+	{
+		xmlXPathFreeObject(xpathObj);
+		return PARSER_ERROR_BOUNDS_NUMBER;
+	}
+
+	node_node= nodes->nodeTab[0]; 
+	if(node_node->type != XML_ELEMENT_NODE) 
+	{
+		xmlXPathFreeObject(xpathObj);
+		return PARSER_ERROR_BOUNDS_TYPE;
+	}
+	
+	xmlAttr* attr= node_node->properties;
+
+	while(attr && attr->name && attr->children){
+		
+		xmlChar* value = xmlNodeListGetString(node_node->doc, attr->children, 1);
+
+		printf("fsfsef %s\n", value);
+
+		if(strcmp (attr->name , "id") == 0 )
+			node->id = atoi(value);
+		else if(strcmp (attr->name , "lat") == 0 )
+			node->lat = atof(value);
+		else if(strcmp (attr->name , "lon") == 0 ){
+			printf("fsfsef %s\n", value);
+			node->lon = atof(value);
+		}
+		else if(strcmp (attr->name , "visbile") == 0 )
+			node->visible = (strcmp (value, "true")) ? 0 : 1;
+			
+		xmlFree(value);
+		attr = attr->next;
+	}
+	
+	xmlXPathFreeObject(xpathObj);
+	return(PARSER_SUCESS);
+}
 
 
 
