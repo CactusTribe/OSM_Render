@@ -11,11 +11,8 @@ ifeq ($(UNAME_S),Linux)
 	LIBFLAGS = -lSDL2 -lxml2 -lSDL2_gfx
 endif
 ifeq ($(UNAME_S),Darwin)
-	LIBFLAGS = -framework SDL2 -framework SDL2_image -framework SDL2_ttf -framework libxml
+	LIBFLAGS = -lSDL2 -L/usr/local/opt/libxml2/lib -lSDL2_gfx
 endif
-
-
-
 
 # Solution provisoire
 SRC_FILES= $(wildcard $(SRC_DIR)/**.c) $(wildcard $(SRC_DIR)/**/**.c) $(wildcard $(SRC_DIR)/**/**/**.c) $(wildcard $(SRC_DIR)/**/**/**/**.c) 

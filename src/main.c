@@ -2,7 +2,6 @@
 #include <SDL2/SDL2_gfxPrimitives.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "graphic.h"
 #include "parser/osm_parser.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -13,6 +12,7 @@
 #include <libxml/xpath.h>
 #include <libxml/xpathInternals.h>
 #include <libxml/tree.h>
+
 int main(int argc, char** argv){
     SDL_Window* pWindow = NULL;
     SDL_Renderer *ren = NULL;
@@ -45,12 +45,10 @@ int main(int argc, char** argv){
     SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
     SDL_RenderClear(ren); // Clear la fenêtre
 
-    short vx[4] = {50, 100, 100, 50};
-    short vy[4] = {50, 50, 100, 100};
-    filledPolygonColor(ren, vx, vy, 4, 0xFF0000FF);
+    short vx[6] = {50, 100, 150, 100, 50 , 0};
+    short vy[6] = {50, 50, 100, 150, 150, 100};
+    filledPolygonColor(ren, vx, vy, 6, 0xFF0000FF);
     SDL_RenderPresent(ren); // Affiche les modifications
-
-    // printf("Point in poly = %d\n", pointInPolygon(&pt4, &p));
 
     if( pWindow ){
         while(!terminer){
