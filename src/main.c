@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+#include <SDL2/SDL2_gfxPrimitives.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "graphic.h"
@@ -19,11 +20,11 @@ int main(int argc, char** argv){
     SDL_Event evenements;
     int terminer = 0;
 
-OSM_Bounds bounds;
+// OSM_Bounds bounds;
 
-getOSM_Bounds("./src/model/test.osm", &bounds);
+// getOSM_Bounds("./src/model/test.osm", &bounds);
 
-printOSM_Bounds( bounds);
+// printOSM_Bounds( bounds);
 
 
     /* Initialisation */
@@ -44,29 +45,12 @@ printOSM_Bounds( bounds);
     SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
     SDL_RenderClear(ren); // Clear la fenêtre
 
-    SDL_Rect r = {200,200,200,60};
-
-    RGBA_COLOR red = {255, 0, 0, 255};
-    RGBA_COLOR green = {0, 255, 0, 255};
-    RGBA_COLOR blue = {0, 0, 255, 255};
-    RGBA_COLOR black = {0, 0, 0, 255};
-    
-    drawRectangle(ren, &r, &blue);
-
-    SDL_Point pt1 = {50,50};
-    SDL_Point pt2 = {100,50};
-    SDL_Point pt3 = {100,200};
-    SDL_Point points[] = {pt1, pt2, pt3};
-    POLYGON p = {points, 3};
-
-    drawPolygon(ren, &p, &red);
-
-    SDL_Point pt4 = {60,51};
-    drawPoint(ren, &pt4, &black);
-
+    short vx[4] = {50, 100, 100, 50};
+    short vy[4] = {50, 50, 100, 100};
+    filledPolygonColor(ren, vx, vy, 4, 0xFF0000FF);
     SDL_RenderPresent(ren); // Affiche les modifications
 
-    printf("Point in poly = %d\n", pointInPolygon(&pt4, &p));
+    // printf("Point in poly = %d\n", pointInPolygon(&pt4, &p));
 
     if( pWindow ){
         while(!terminer){
