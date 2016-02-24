@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -g -Wall
+CFLAGS = -g -Wall `xml2-config --cflags` `xml2-config --libs`
 EXEC = OSM_Render
 
 SRC_DIR = src
@@ -13,6 +13,9 @@ endif
 ifeq ($(UNAME_S),Darwin)
 	LIBFLAGS = -framework SDL2 -framework SDL2_image -framework SDL2_ttf -framework libxml
 endif
+
+
+
 
 # Solution provisoire
 SRC_FILES= $(wildcard $(SRC_DIR)/**.c) $(wildcard $(SRC_DIR)/**/**.c) $(wildcard $(SRC_DIR)/**/**/**.c) $(wildcard $(SRC_DIR)/**/**/**/**.c) 

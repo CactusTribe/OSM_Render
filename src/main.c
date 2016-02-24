@@ -2,13 +2,29 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "graphic.h"
+#include "parser/osm_parser.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <assert.h>
 
+#include <libxml/parser.h>
+#include <libxml/xpath.h>
+#include <libxml/xpathInternals.h>
+#include <libxml/tree.h>
 int main(int argc, char** argv){
     SDL_Window* pWindow = NULL;
     SDL_Renderer *ren = NULL;
 
     SDL_Event evenements;
     int terminer = 0;
+
+OSM_Bounds bounds;
+
+getOSM_Bounds("./src/model/test.osm", &bounds);
+
+printOSM_Bounds( bounds);
+
 
     /* Initialisation */
     if (SDL_Init(SDL_INIT_VIDEO) != 0 ){
