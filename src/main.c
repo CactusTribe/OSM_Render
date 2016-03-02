@@ -13,6 +13,7 @@
 #include <libxml/xpathInternals.h>
 #include <libxml/tree.h>
 
+
 int main(int argc, char** argv){
     SDL_Window* pWindow = NULL;
     SDL_Renderer *ren = NULL;
@@ -20,13 +21,41 @@ int main(int argc, char** argv){
     SDL_Event evenements;
     int terminer = 0;
 
-    // OSM_Bounds bounds;
-    // getOSM_Bounds("./src/model/test.osm", &bounds);
-    // printOSM_Bounds( bounds);
 
-    OSM_Node node1;
-    getOSM_Node("./src/model/test.osm", &node1);
-    printOSM_Node(node1);
+	osmParserFile* osmFile;
+	osmParserDataSet* osmDataSet;
+
+
+	open_OSM_ParserFile("./src/model/test.osm", &osmFile);
+
+getOSM_Node(osmFile, &osmDataSet);
+
+printf("size: %d", getDataSet_lenght(osmDataSet));
+OSM_Node node;
+int index;
+for(index=0; index< getDataSet_lenght(osmDataSet) ; index++)
+{
+	node = bind_OSM_Node( getDataSet_element( osmDataSet, index)    );
+	printOSM_Node(node);
+}
+freeDataSet(osmDataSet);
+
+
+getOSM_Way(osmFile, &osmDataSet);
+
+printf("size: %d", getDataSet_lenght(osmDataSet));
+freeDataSet(osmDataSet);
+
+getOSM_Relation(osmFile, &osmDataSet);
+
+printf("size: %d", getDataSet_lenght(osmDataSet));
+
+
+
+freeDataSet(osmDataSet);
+
+
+
 
     /* Initialisation */
     if (SDL_Init(SDL_INIT_VIDEO) != 0 ){

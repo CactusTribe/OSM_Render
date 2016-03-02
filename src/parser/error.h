@@ -10,7 +10,7 @@ typedef unsigned char parser_error_t;
 #define PARSER_ERROR_XPATH_CONTEXT 	2
 #define PARSER_ERROR_EVALUATE_XPATH	3
 #define PARSER_ERROR_BOUNDS_NUMBER	4
-#define PARSER_ERROR_BOUNDS_TYPE		5
+#define PARSER_ERROR_BOUNDS_TYPE	5
 
 extern void fprint_parser_error(FILE* stream, const parser_error_t error);
 extern void print_parser_error(const parser_error_t error);
