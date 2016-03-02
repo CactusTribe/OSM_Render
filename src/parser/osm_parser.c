@@ -1,5 +1,9 @@
 #include "osm_parser.h"
-#include "osm_parser.h"
+
+#define TRUE_STR "true"
+#define TRUE_VAL 1
+#define FALSE_STR "false"
+#define FALSE_VAL 0
 
 #define ATTR_BINDING_DOUBLE(field,attrname) \
 	if(xmlStrEqual( xmlCharStrdup(attrname) , attr->name)) \
@@ -8,6 +12,10 @@
 #define ATTR_BINDING_INT(field,attrname) \
 	if(xmlStrEqual( xmlCharStrdup(attrname) , attr->name)) \
 		field= atoi( (char *) value);
+
+#define ATTR_BINDING_BOOL(field,attrname) \
+	if(xmlStrEqual( xmlCharStrdup(attrname) , attr->name)) \
+		field= strcmp(TRUE_STR, value) ? FALSE_VAL : TRUE_VAL;
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -177,7 +185,9 @@ OSM_Node bind_OSM_Node(osmParserIterator node)
 		ATTR_BINDING_INT(osm_node.id, "id")
 		ATTR_BINDING_DOUBLE(osm_node.lat, "lat")
 		ATTR_BINDING_DOUBLE(osm_node.lon, "lon")
-		ATTR_BINDING_INT(osm_node.visible, "visible")
+
+		ATTR_BINDING_BOOL(osm_node.visible, "visible")
+		// ATTR_BINDING_INT(osm_node.visible, "visible")
 
 		xmlFree(value);
 		attr= attr->next;
@@ -185,7 +195,23 @@ OSM_Node bind_OSM_Node(osmParserIterator node)
 	return osm_node;
 }
 
+OSM_Way bind_OSM_Way(osmParserIterator node)
+{
+	OSM_Way osm_way;
+	xmlAttr* attr= node->properties;
 
+	while(attr && attr->name && attr->children)
+	{
+		xmlChar* value= xmlNodeListGetString(node->doc, attr->children, 1);
+
+		ATTR_BINDING_INT(osm_way.id, "id")
+		ATTR_BINDING_BOOL(osm_way.visible, "visible")
+
+		xmlFree(value);
+		attr= attr->next;
+	}
+	return osm_way;
+}
 
 /*
 parser_error_t del_osmParserContext(osmParserContextPtr context)

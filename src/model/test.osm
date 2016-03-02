@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <osm version="0.6" generator="CGImap 0.0.2">
  <bounds minlat="39.7492900" minlon="-104.9737800" maxlat="39.7525610" maxlon="-104.9693810"/>
- <node id="1321042431" lat="39.7519707" lon="-104.9739674" user="StellanL" uid="28775" visible="true" version="1" changeset="8411074" timestamp="2011-06-11T23:41:37Z"/>
+ <node id="1321042431" lat="39.7519707" lon="-104.9739674" user="StellanL" uid="28775" visible="false" version="1" changeset="8411074" timestamp="2011-06-11T23:41:37Z"/>
  <node id="176096518" lat="39.7507340" lon="-104.9708826" user="StellanL" uid="28775" visible="true" version="6" changeset="8411074" timestamp="2011-06-11T23:41:39Z"/>
  <node id="176071903" lat="39.7532291" lon="-104.9696574" user="StellanL" uid="28775" visible="true" version="5" changeset="8411074" timestamp="2011-06-11T23:41:45Z"/>
  <node id="176085445" lat="39.7664884" lon="-104.9733488" user="DavidJDBA" uid="139555" visible="true" version="10" changeset="6591862" timestamp="2010-12-09T04:43:03Z"/>

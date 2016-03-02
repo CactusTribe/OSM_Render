@@ -37,6 +37,8 @@ osmParserIterator getDataSet_element( osmParserDataSetPtr osmDataSet, int index)
 
 OSM_Bounds bind_OSM_Bounds(osmParserIterator node);
 OSM_Node bind_OSM_Node(osmParserIterator node);
+OSM_Way bind_OSM_Way(osmParserIterator node);
+
 /*
 parser_error_t new_osmParserContext(const char* filename, osmParserContextPtr* context);
 

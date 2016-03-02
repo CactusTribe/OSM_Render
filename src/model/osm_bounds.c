@@ -24,7 +24,7 @@ void fprintOSM_Tag(FILE* stream, const OSM_Tag tag){
 }
 
 void fprintOSM_Way(FILE* stream, const OSM_Way way){
-	fprintf(stream, "OSM_Node:\n");
+	fprintf(stream, "OSM_Way:\n");
 	fprintf(stream, "\tid: %d\n", way.id);
 	fprintf(stream, "\tvisible: %d\n", way.visible);
 }
