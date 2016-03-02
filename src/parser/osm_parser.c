@@ -15,7 +15,7 @@
 
 #define ATTR_BINDING_BOOL(field,attrname) \
 	if(xmlStrEqual( xmlCharStrdup(attrname) , attr->name)) \
-		field= strcmp(TRUE_STR, value) ? FALSE_VAL : TRUE_VAL;
+		field= strcmp(TRUE_STR, (char *) value) ? FALSE_VAL : TRUE_VAL;
 
 #include <stdlib.h>
 #include <stdio.h>
