@@ -24,6 +24,7 @@ typedef struct{
 typedef struct{
 	int id;
 	int visible;
+	int nb_nodes;
 	OSM_Node *nodeList;
 	OSM_Tag *tagList;
 } OSM_Way;
