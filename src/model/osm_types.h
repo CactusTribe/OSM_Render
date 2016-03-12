@@ -1,5 +1,5 @@
-#ifndef _OSM_BOUNDS_H_ 
-#define _OSM_BOUNDS_H_
+#ifndef _OSM_TYPES_H_ 
+#define _OSM_TYPES_H_
 
 typedef struct{
 	double minlat;
@@ -25,6 +25,7 @@ typedef struct{
 	int id;
 	int visible;
 	int nb_nodes;
+	int nb_tags;
 	OSM_Node *nodeList;
 	OSM_Tag *tagList;
 } OSM_Way;
@@ -39,4 +40,4 @@ extern void printOSM_Node(const OSM_Node node);
 extern void printOSM_Tag(const OSM_Tag tag);
 extern void printOSM_Way(const OSM_Way way);
 
-#endif /* _OSM_BOUNDS_H_ */
+#endif /* _OSM_TYPES_H_ */

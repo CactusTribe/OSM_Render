@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "osm_bounds.h"
+#include "osm_types.h"
 
 void fprintOSM_Bounds(FILE* stream, const OSM_Bounds bounds){
 	fprintf(stream,"OSM_Bounds:\n");

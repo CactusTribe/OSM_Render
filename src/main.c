@@ -16,11 +16,8 @@
 #include "graphic/graphic.h"
 
 int main(int argc, char** argv){
-    SDL_Window* pWindow = NULL;
-    SDL_Renderer *ren = NULL;
 
-    SDL_Event evenements;
-    int terminer = 0;
+    // ################# PARSER ##################
 
 	osmParserFile* osmFile;
 	osmParserDataSet* osmDataSet;
@@ -59,45 +56,30 @@ int main(int argc, char** argv){
 
     freeDataSet(osmDataSet);
 
+
+    // ################# AFFICHAGE ##################
+
+    SDL_Window* pWindow = NULL;
+    SDL_Renderer *ren = NULL;
+    SDL_Event evenements;
+    int terminer = 0;
+
     /* Initialisation */
     if (SDL_Init(SDL_INIT_VIDEO) != 0 ){
         fprintf(stdout,"Échec de l'initialisation de la SDL (%s)\n",SDL_GetError());
         exit(1);
     }
 
-
     /* Création de la fenêtre */
     pWindow = SDL_CreateWindow("OSM_Render",SDL_WINDOWPOS_UNDEFINED,
-                                                              SDL_WINDOWPOS_UNDEFINED,
-                                                              640,
-                                                              480,
-                                                              SDL_WINDOW_SHOWN);
+        SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_SHOWN);
 
     ren = SDL_CreateRenderer(pWindow, 0, 0);
 
     SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
     SDL_RenderClear(ren); // Clear la fenêtre
 
-    // TEST affichage Way
-    RGBA_COLOR grey = {150,150,150,255};
-
-    OSM_Node node1 = {0001, 30.0, 30.0, 1, 0};
-    OSM_Node node2 = {0001, 100.0, 100.0, 1, 0};
-    OSM_Node node3 = {0001, 350.0, 90.0, 1, 0};
-
-    OSM_Node *liste = malloc(3 * sizeof(OSM_Node));
-    liste[0] = node1;
-    liste[1] = node2;
-    liste[2] = node3;
-
-    OSM_Way way1 = {000002, 1, 3, liste};
-
-    drawWay(ren, &way1, &grey, 25);
-    free(liste);
-
-    //short vx[6] = {50, 100, 150, 100, 50 , 0};
-    //short vy[6] = {50, 50, 100, 150, 150, 100};
-    //filledPolygonColor(ren, vx, vy, 6, 0xFF0000FF);
+    OSM_Rendering(ren);
 
     SDL_RenderPresent(ren); // Affiche les modifications
 
