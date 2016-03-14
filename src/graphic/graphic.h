@@ -5,7 +5,7 @@
 #include <SDL2/SDL2_gfxPrimitives.h>
 #include "../model/osm_types.h"
 
-#define NB_STYLES 10
+#define NB_STYLES 18
 
 typedef struct{
 	int r;
@@ -16,6 +16,7 @@ typedef struct{
 
 typedef struct{
 	char *key;
+	char *value;
 	int weigth;
 	RGBA_COLOR color_IN;
 	RGBA_COLOR color_OUT;
@@ -24,6 +25,6 @@ typedef struct{
 extern void drawWay(SDL_Renderer *ren, OSM_Way *way);
 
 extern void OSM_Rendering(SDL_Renderer *ren);
-extern STYLE_ENTRY* getStyleOf(char *key); 
+extern STYLE_ENTRY* getStyleOf(char *key, char *value); 
 
 #endif

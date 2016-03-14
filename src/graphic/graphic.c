@@ -3,48 +3,58 @@
 
 // Dictionnaire contenant les styles
 STYLE_ENTRY _styles[NB_STYLES] = {
-	{"default", 15, {190,190,190,255}, {100,100,100,255}},
-	{"primary", 25, {254,216,155,255}, {176,124,0,255}},
-	{"secondary", 25, {243,254,181,255}, {117,144,0,255}},
-	{"tertiary", 25, {255,255,255,255}, {174,174,174,255}},
-	{"unclassified", 15, {255,255,255,255}, {174,174,174,255}},
-	{"residential", 15, {255,255,255,255}, {174,174,174,255}},
-	{"service", 8, {255,255,255,255}, {174,174,174,255}},
-	{"living_street", 15, {237,238,237,255}, {197,197,197,255}},
-	{"pedestrian", 15, {223,220,234,255}, {168,166,167,255}},
-	{"tram", 9, {69,69,69,255}, {69,69,69,255}}
+	{"default", "default", 15, {190,190,190,255}, {100,100,100,255}},
+	{"highway", "primary", 25, {254,216,155,255}, {176,124,0,255}},
+	{"highway", "secondary", 25, {243,254,181,255}, {117,144,0,255}},
+	{"highway", "tertiary", 25, {255,255,255,255}, {174,174,174,255}},
+	{"highway", "unclassified", 15, {255,255,255,255}, {174,174,174,255}},
+	{"highway", "residential", 15, {255,255,255,255}, {174,174,174,255}},
+	{"highway", "service", 8, {255,255,255,255}, {174,174,174,255}},
+	{"highway", "living_street", 15, {237,238,237,255}, {197,197,197,255}},
+	{"highway", "pedestrian", 15, {223,220,234,255}, {168,166,167,255}},
+	{"railway", "tram", 9, {69,69,69,255}, {69,69,69,255}},
+	{"waterway", "river", 15, {136,189,214,255}, {136,189,214,255}},
+	{"waterway", "canal", 8, {136,189,214,255}, {136,189,214,255}},
+	{"natural", "water", 0, {136,189,214,255}, {136,189,214,255}},
+	{"natural", "coastline", 0, {136,189,214,255}, {136,189,214,255}},
+	{"building", "yes", 0, {190,190,190,255}, {190,190,190,255}},
+	{"landuse", "grass", 0, {197,236,148,255}, {197,236,148,255}},
+	{"landuse", "forest", 0, {157,202,138,255}, {157,202,138,255}},
+	{"leisure", "park", 0, {205,247,201,255}, {205,247,201,255}}
 };
 
 // Retourne le style en fonction de la clé
-STYLE_ENTRY* getStyleOf(char *key){
+STYLE_ENTRY* getStyleOf(char *key, char *value){
 	for(int i=0; i<NB_STYLES; i++){
-		if(strcmp(key, _styles[i].key) == 0){
+		if(strcmp(key, _styles[i].key) == 0 && strcmp(value, _styles[i].value) == 0){
 			return &_styles[i];
 		}
 	}
 	return &_styles[0];
 }
 
-void draw_highway(SDL_Renderer *ren, OSM_Way *way);
-void draw_railway(SDL_Renderer *ren, OSM_Way *way);
+void draw_openedWay(SDL_Renderer *ren, OSM_Way *way);
+void draw_closedWay(SDL_Renderer *ren, OSM_Way *way);
 
 /* Choisie la fonction d'affichage appropriée en fonction de la clé */ 
 void drawWay(SDL_Renderer *ren, OSM_Way *way){
 	char *key = way->tagList[0].k;
 
-	if(strcmp(key, "highway") == 0){
-		draw_highway(ren, way);
+	if(strcmp(key, "highway") == 0 || strcmp(key, "railway") == 0 || strcmp(key, "waterway") == 0){
+		draw_openedWay(ren, way);
 	}
-	else if(strcmp(key, "railway") == 0){
-		draw_railway(ren, way);
+	else if(strcmp(key, "building") == 0 || strcmp(key, "natural") == 0 || strcmp(key, "landuse") == 0 || strcmp(key, "leisure") == 0){
+		draw_closedWay(ren, way);
 	}
+
 }
 
-/* Affichage d'une way de type HIGHWAY */
-void draw_highway(SDL_Renderer *ren, OSM_Way *way){
+/* Affichage d'une way ouverte */
+void draw_openedWay(SDL_Renderer *ren, OSM_Way *way){
+	char *key = way->tagList[0].k;
 	char *value = way->tagList[0].v;
-	STYLE_ENTRY *style = getStyleOf(value);
 
+	STYLE_ENTRY *style = getStyleOf(key, value);
 
 	int weigth = style->weigth;
 	RGBA_COLOR *rgb_IN = &style->color_IN;
@@ -73,73 +83,81 @@ void draw_highway(SDL_Renderer *ren, OSM_Way *way){
   }
 }
 
-/* Affichage d'une way de type RAILWAY */
-void draw_railway(SDL_Renderer *ren, OSM_Way *way){
+
+/* Affichage d'une way fermée */
+void draw_closedWay(SDL_Renderer *ren, OSM_Way *way){
+	char *key = way->tagList[0].k;
 	char *value = way->tagList[0].v;
-	STYLE_ENTRY *style = getStyleOf(value);
 
-
-	int weigth = style->weigth;
+	STYLE_ENTRY *style = getStyleOf(key, value);
 	RGBA_COLOR *rgb_IN = &style->color_IN;
-	RGBA_COLOR *rgb_OUT = &style->color_OUT;
 
-	// Draw shape
-  for(int i=0; i < (way->nb_nodes)-1 ; i++){
-  	if(i > 0 && i < (way->nb_nodes)-1){
-	  	filledCircleRGBA(ren, way->nodeList[i].lon, way->nodeList[i].lat, (weigth/2),
-	  		rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
-	  }
+	int nb_nodes = way->nb_nodes-1;
+	short vx[nb_nodes];
+	short vy[nb_nodes];
 
-  	thickLineRGBA(ren, way->nodeList[i].lon, way->nodeList[i].lat, 
- 			way->nodeList[i+1].lon, way->nodeList[i+1].lat, weigth, rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
-  }
+	for(int i=0; i < nb_nodes; i++){
+		vx[i] = way->nodeList[i].lon;
+		vy[i] = way->nodeList[i].lat;
+	}
 
-  // Draw inner shape
-  for(int i=0; i < (way->nb_nodes)-1 ; i++){
-  	if(i > 0 && i < (way->nb_nodes)-1){
-	  	filledCircleRGBA(ren, way->nodeList[i].lon, way->nodeList[i].lat, ((weigth-3)/2),
-	  		rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
-	  }
-
-  	thickLineRGBA(ren, way->nodeList[i].lon, way->nodeList[i].lat, 
- 			way->nodeList[i+1].lon, way->nodeList[i+1].lat, weigth-3, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
-  }
+  filledPolygonRGBA(ren, vx, vy, nb_nodes, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
 }
 
 
 void OSM_Rendering(SDL_Renderer *ren){
 
-  // WAY
-  OSM_Node node1 = {0001, 30.0, 30.0, 1, 0};
-  OSM_Node node2 = {0001, 100.0, 100.0, 1, 0};
-  OSM_Node node3 = {0001, 350.0, 120.0, 1, 0};
-  OSM_Node node4 = {0001, 360.0, 190.0, 1, 0};
+  // TEST AFFICHAGE WAY
+  OSM_Node wn1 = {0, 30.0, 30.0, 1, 0};
+  OSM_Node wn2 = {0, 100.0, 100.0, 1, 0};
+  OSM_Node wn3 = {0, 350.0, 120.0, 1, 0};
+  OSM_Node wn4 = {0, 360.0, 190.0, 1, 0};
 
-  OSM_Node *nodes_liste = malloc(4 * sizeof(OSM_Node));
-  nodes_liste[0] = node1;
-  nodes_liste[1] = node2;
-  nodes_liste[2] = node3;
-  nodes_liste[3] = node4;
+  OSM_Node *wn_liste = malloc(4 * sizeof(OSM_Node));
+  wn_liste[0] = wn1;
+  wn_liste[1] = wn2;
+  wn_liste[2] = wn3;
+  wn_liste[3] = wn4;
 
-  OSM_Tag t1 = {"highway", "primary"};
-  //OSM_Tag t1 = {"highway", "secondary"};
-  //OSM_Tag t1 = {"highway", "tertiary"};
-  //OSM_Tag t1 = {"highway", "residential"};
-  //OSM_Tag t1 = {"highway", "unclassified"};
-  //OSM_Tag t1 = {"highway", "service"};
-  //OSM_Tag t1 = {"highway", "living_street"};
-  //OSM_Tag t1 = {"highway", "pedestrian"};
-  //OSM_Tag t1 = {"railway", "tram"};
+  OSM_Tag wt1 = {"highway", "primary"};
 
-  OSM_Tag *tags_liste = malloc(1 * sizeof(OSM_Tag));
-  tags_liste[0] = t1;
+  OSM_Tag *wt_liste = malloc(1 * sizeof(OSM_Tag));
+  wt_liste[0] = wt1;
 
-  OSM_Way myWAY = {000002, 1, 4, 1, nodes_liste, tags_liste};
+  OSM_Way way1 = {000002, 1, 4, 1, wn_liste, wt_liste};
 
-  drawWay(ren, &myWAY);
+  drawWay(ren, &way1);
 
-  free(nodes_liste);
-  free(tags_liste);
+  free(wn_liste);
+  free(wt_liste);
+  // #################################################
+
+  // TEST AFFICHAGE BUILDING
+  OSM_Node bn1 = {0, 150.0, 260.0, 1, 0};
+  OSM_Node bn2 = {0, 200.0, 320.0, 1, 0};
+  OSM_Node bn3 = {0, 320.0, 300.0, 1, 0};
+  OSM_Node bn4 = {0, 270.0, 190.0, 1, 0};
+  OSM_Node bn5 = {0, 150.0, 260.0, 1, 0};
+
+  OSM_Node *bn_liste = malloc(5 * sizeof(OSM_Node));
+  bn_liste[0] = bn1;
+  bn_liste[1] = bn2;
+  bn_liste[2] = bn3;
+  bn_liste[3] = bn4;
+  bn_liste[4] = bn5;
+
+  OSM_Tag bt1 = {"landuse", "forest"};
+
+  OSM_Tag *bt_liste = malloc(1 * sizeof(OSM_Tag));
+  bt_liste[0] = bt1;
+
+  OSM_Way building1 = {0, 1, 5, 1, bn_liste, bt_liste};
+
+  drawWay(ren, &building1);
+
+  free(bn_liste);
+  free(bt_liste);
+  // #################################################
 
   //short vx[6] = {50, 100, 150, 100, 50 , 0};
   //short vy[6] = {50, 50, 100, 150, 150, 100};
