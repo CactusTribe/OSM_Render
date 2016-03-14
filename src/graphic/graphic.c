@@ -1,138 +1,111 @@
 #include "graphic.h"
 #include <string.h>
 
+// Dictionnaire contenant les styles
+STYLE_ENTRY _styles[NB_STYLES] = {
+	{"default", 15, {190,190,190,255}, {100,100,100,255}},
+	{"primary", 25, {254,216,155,255}, {176,124,0,255}},
+	{"secondary", 25, {243,254,181,255}, {117,144,0,255}},
+	{"tertiary", 25, {255,255,255,255}, {174,174,174,255}},
+	{"unclassified", 15, {255,255,255,255}, {174,174,174,255}},
+	{"residential", 15, {255,255,255,255}, {174,174,174,255}},
+	{"service", 8, {255,255,255,255}, {174,174,174,255}},
+	{"living_street", 15, {237,238,237,255}, {197,197,197,255}},
+	{"pedestrian", 15, {223,220,234,255}, {168,166,167,255}},
+	{"tram", 9, {69,69,69,255}, {69,69,69,255}}
+};
+
+// Retourne le style en fonction de la clé
+STYLE_ENTRY* getStyleOf(char *key){
+	for(int i=0; i<NB_STYLES; i++){
+		if(strcmp(key, _styles[i].key) == 0){
+			return &_styles[i];
+		}
+	}
+	return &_styles[0];
+}
+
+void draw_highway(SDL_Renderer *ren, OSM_Way *way);
+void draw_railway(SDL_Renderer *ren, OSM_Way *way);
+
+/* Choisie la fonction d'affichage appropriée en fonction de la clé */ 
 void drawWay(SDL_Renderer *ren, OSM_Way *way){
-
-	int weigth;
-	RGBA_COLOR rgb_IN;
-	RGBA_COLOR rgb_OUT;
-
-	// HIGHWAY COLORS
-	RGBA_COLOR primary_IN = {254,216,155,255};
-	RGBA_COLOR primary_OUT = {176,124,0,255};
-	RGBA_COLOR secondary_IN = {243,254,181,255};
-	RGBA_COLOR secondary_OUT = {117,144,0,255};
-	RGBA_COLOR tertiary_IN = {255,255,255,255};
-	RGBA_COLOR tertiary_OUT = {174,174,174,255};
-	RGBA_COLOR unclassified_IN = {255,255,255,255};
-	RGBA_COLOR unclassified_OUT = {174,174,174,255};
-	RGBA_COLOR residential_IN = {255,255,255,255};
-	RGBA_COLOR residential_OUT = {174,174,174,255};
-	RGBA_COLOR service_IN = {255,255,255,255};
-	RGBA_COLOR service_OUT = {174,174,174,255};
-	RGBA_COLOR living_street_IN = {237,238,237,255};
-	RGBA_COLOR living_street_OUT = {197,197,197,255};
-	RGBA_COLOR pedestrian_IN = {223,220,234,255};
-	RGBA_COLOR pedestrian_OUT = {168,166,167,255};
-
-	// RAILWAY COLORS
-	RGBA_COLOR tram_IN = {69,69,69,255};
-	RGBA_COLOR tram_OUT = {69,69,69,255};
-
 	char *key = way->tagList[0].k;
-	char *value = way->tagList[0].v;
 
 	if(strcmp(key, "highway") == 0){
-		if(strcmp(value, "primary") == 0 || strcmp(value, "secondary") == 0 || strcmp(value, "tertiary") == 0
-			|| strcmp(value, "unclassified") == 0 || strcmp(value, "residential") == 0 || strcmp(value, "service") == 0
-			|| strcmp(value, "living_street") == 0 || strcmp(value, "pedestrian") == 0){
-
-			
-			if(strcmp(value, "primary") == 0){
-				weigth = 25;
-				rgb_IN = primary_IN;
-				rgb_OUT = primary_OUT;
-			}
-			else if(strcmp(value, "secondary") == 0){
-				weigth = 25;
-				rgb_IN = secondary_IN;
-				rgb_OUT = secondary_OUT;
-			}
-			else if(strcmp(value, "tertiary") == 0){
-				weigth = 25;
-				rgb_IN = tertiary_IN;
-				rgb_OUT = tertiary_OUT;
-			}
-			else if(strcmp(value, "unclassified") == 0){
-				weigth = 15;
-				rgb_IN = unclassified_IN;
-				rgb_OUT = unclassified_OUT;
-			}
-			else if(strcmp(value, "residential") == 0){
-				weigth = 15;
-				rgb_IN = residential_IN;
-				rgb_OUT = residential_OUT;
-			}
-			else if(strcmp(value, "service") == 0){
-				weigth = 8;
-				rgb_IN = service_IN;
-				rgb_OUT = service_OUT;
-			}
-			else if(strcmp(value, "living_street") == 0){
-				weigth = 15;
-				rgb_IN = living_street_IN;
-				rgb_OUT = living_street_OUT;
-			}
-			else if(strcmp(value, "pedestrian") == 0){
-				weigth = 15;
-				rgb_IN = pedestrian_IN;
-				rgb_OUT = pedestrian_OUT;
-			}
-
-			// Draw shape
-		  for(int i=0; i < (way->nb_nodes)-1 ; i++){
-		  	if(i > 0 && i < (way->nb_nodes)-1){
-			  	filledCircleRGBA(ren, way->nodeList[i].lon, way->nodeList[i].lat, (weigth/2),
-			  		rgb_OUT.r, rgb_OUT.g, rgb_OUT.b, rgb_OUT.a);
-			  }
-
-		  	thickLineRGBA(ren, way->nodeList[i].lon, way->nodeList[i].lat, 
-		 			way->nodeList[i+1].lon, way->nodeList[i+1].lat, weigth, rgb_OUT.r, rgb_OUT.g, rgb_OUT.b, rgb_OUT.a);
-		  }
-
-		  // Draw inner shape
-		  for(int i=0; i < (way->nb_nodes)-1 ; i++){
-		  	if(i > 0 && i < (way->nb_nodes)-1){
-			  	filledCircleRGBA(ren, way->nodeList[i].lon, way->nodeList[i].lat, ((weigth-3)/2),
-			  		rgb_IN.r, rgb_IN.g, rgb_IN.b, rgb_IN.a);
-			  }
-
-		  	thickLineRGBA(ren, way->nodeList[i].lon, way->nodeList[i].lat, 
-		 			way->nodeList[i+1].lon, way->nodeList[i+1].lat, weigth-3, rgb_IN.r, rgb_IN.g, rgb_IN.b, rgb_IN.a);
-		  }
-		}
+		draw_highway(ren, way);
 	}
 	else if(strcmp(key, "railway") == 0){
-		if(strcmp(value, "tram") == 0){
-			weigth = 9;
-			rgb_IN = tram_IN;
-			rgb_OUT = tram_OUT;
-		}
-
-		// Draw shape
-	  for(int i=0; i < (way->nb_nodes)-1 ; i++){
-	  	if(i > 0 && i < (way->nb_nodes)-1){
-		  	filledCircleRGBA(ren, way->nodeList[i].lon, way->nodeList[i].lat, (weigth/2),
-		  		rgb_OUT.r, rgb_OUT.g, rgb_OUT.b, rgb_OUT.a);
-		  }
-
-	  	thickLineRGBA(ren, way->nodeList[i].lon, way->nodeList[i].lat, 
-	 			way->nodeList[i+1].lon, way->nodeList[i+1].lat, weigth, rgb_OUT.r, rgb_OUT.g, rgb_OUT.b, rgb_OUT.a);
-	  }
-
-	  // Draw inner shape
-	  for(int i=0; i < (way->nb_nodes)-1 ; i++){
-	  	if(i > 0 && i < (way->nb_nodes)-1){
-		  	filledCircleRGBA(ren, way->nodeList[i].lon, way->nodeList[i].lat, ((weigth-3)/2),
-		  		rgb_IN.r, rgb_IN.g, rgb_IN.b, rgb_IN.a);
-		  }
-
-	  	thickLineRGBA(ren, way->nodeList[i].lon, way->nodeList[i].lat, 
-	 			way->nodeList[i+1].lon, way->nodeList[i+1].lat, weigth-3, rgb_IN.r, rgb_IN.g, rgb_IN.b, rgb_IN.a);
-	  }
+		draw_railway(ren, way);
 	}
-	
 }
+
+/* Affichage d'une way de type HIGHWAY */
+void draw_highway(SDL_Renderer *ren, OSM_Way *way){
+	char *value = way->tagList[0].v;
+	STYLE_ENTRY *style = getStyleOf(value);
+
+
+	int weigth = style->weigth;
+	RGBA_COLOR *rgb_IN = &style->color_IN;
+	RGBA_COLOR *rgb_OUT = &style->color_OUT;
+
+	// Draw shape
+  for(int i=0; i < (way->nb_nodes)-1 ; i++){
+  	if(i > 0 && i < (way->nb_nodes)-1){
+	  	filledCircleRGBA(ren, way->nodeList[i].lon, way->nodeList[i].lat, (weigth/2),
+	  		rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
+	  }
+
+  	thickLineRGBA(ren, way->nodeList[i].lon, way->nodeList[i].lat, 
+ 			way->nodeList[i+1].lon, way->nodeList[i+1].lat, weigth, rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
+  }
+
+  // Draw inner shape
+  for(int i=0; i < (way->nb_nodes)-1 ; i++){
+  	if(i > 0 && i < (way->nb_nodes)-1){
+	  	filledCircleRGBA(ren, way->nodeList[i].lon, way->nodeList[i].lat, ((weigth-3)/2),
+	  		rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
+	  }
+
+  	thickLineRGBA(ren, way->nodeList[i].lon, way->nodeList[i].lat, 
+ 			way->nodeList[i+1].lon, way->nodeList[i+1].lat, weigth-3, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
+  }
+}
+
+/* Affichage d'une way de type RAILWAY */
+void draw_railway(SDL_Renderer *ren, OSM_Way *way){
+	char *value = way->tagList[0].v;
+	STYLE_ENTRY *style = getStyleOf(value);
+
+
+	int weigth = style->weigth;
+	RGBA_COLOR *rgb_IN = &style->color_IN;
+	RGBA_COLOR *rgb_OUT = &style->color_OUT;
+
+	// Draw shape
+  for(int i=0; i < (way->nb_nodes)-1 ; i++){
+  	if(i > 0 && i < (way->nb_nodes)-1){
+	  	filledCircleRGBA(ren, way->nodeList[i].lon, way->nodeList[i].lat, (weigth/2),
+	  		rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
+	  }
+
+  	thickLineRGBA(ren, way->nodeList[i].lon, way->nodeList[i].lat, 
+ 			way->nodeList[i+1].lon, way->nodeList[i+1].lat, weigth, rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
+  }
+
+  // Draw inner shape
+  for(int i=0; i < (way->nb_nodes)-1 ; i++){
+  	if(i > 0 && i < (way->nb_nodes)-1){
+	  	filledCircleRGBA(ren, way->nodeList[i].lon, way->nodeList[i].lat, ((weigth-3)/2),
+	  		rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
+	  }
+
+  	thickLineRGBA(ren, way->nodeList[i].lon, way->nodeList[i].lat, 
+ 			way->nodeList[i+1].lon, way->nodeList[i+1].lat, weigth-3, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
+  }
+}
+
 
 void OSM_Rendering(SDL_Renderer *ren){
 
@@ -161,9 +134,9 @@ void OSM_Rendering(SDL_Renderer *ren){
   OSM_Tag *tags_liste = malloc(1 * sizeof(OSM_Tag));
   tags_liste[0] = t1;
 
-  OSM_Way primary = {000002, 1, 4, 1, nodes_liste, tags_liste};
+  OSM_Way myWAY = {000002, 1, 4, 1, nodes_liste, tags_liste};
 
-  drawWay(ren, &primary);
+  drawWay(ren, &myWAY);
 
   free(nodes_liste);
   free(tags_liste);
