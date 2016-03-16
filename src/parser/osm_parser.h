@@ -6,7 +6,7 @@
 #include <libxml/xpathInternals.h>
 #include <libxml/tree.h>
 #include "error.h"
-#include "../model/osm_bounds.h"
+#include "../model/osm_types.h"
 
 //extern parser_error_t execute_xpath_expression(const char* filename, const xmlChar* xpathExpr, parser_error_t (*parse_function)(xmlXPathObjectPtr xpathObj));
 

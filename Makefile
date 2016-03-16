@@ -8,10 +8,10 @@ EXEC_FILE= $(BIN_DIR)/$(EXEC)
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
-	LIBFLAGS = -lSDL2 -lxml2 -lSDL2_gfx
+	LIBFLAGS = -lSDL2 -lxml2 -lSDL2_gfx -lSDL2_ttf
 endif
 ifeq ($(UNAME_S),Darwin)
-	LIBFLAGS = -lSDL2 -L/usr/local/opt/libxml2/lib -lSDL2_gfx
+	LIBFLAGS = -lSDL2 -L/usr/local/opt/libxml2/lib -lSDL2_gfx -lSDL2_ttf
 endif
 
 # Solution provisoire

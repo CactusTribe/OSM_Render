@@ -1,5 +1,6 @@
 #include "graphic.h"
 #include <string.h>
+#include <SDL2/SDL_ttf.h>
 
 // Dictionnaire contenant les styles
 STYLE_ENTRY _styles[NB_STYLES] = {
@@ -51,6 +52,7 @@ void drawWay(SDL_Renderer *ren, OSM_Way *way){
 
 /* Affichage d'une way ouverte */
 void draw_openedWay(SDL_Renderer *ren, OSM_Way *way){
+
 	char *key = way->tagList[0].k;
 	char *value = way->tagList[0].v;
 
@@ -104,6 +106,24 @@ void draw_closedWay(SDL_Renderer *ren, OSM_Way *way){
   filledPolygonRGBA(ren, vx, vy, nb_nodes, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
 }
 
+void drawNode(SDL_Renderer *ren, OSM_Node *node){
+	filledCircleRGBA(ren, node->lon, node->lat, 4, 100, 100, 100, 255);
+}
+
+void drawTexte(SDL_Renderer *ren, int x, int y, int w, int h, char *font, int size, char *texte, SDL_Color *color){
+    TTF_Font* font_ttf = TTF_OpenFont(font, size);
+
+    SDL_Surface* surfaceMessage = TTF_RenderText_Blended(font_ttf, texte, *color);
+    SDL_Texture* Message = SDL_CreateTextureFromSurface(ren, surfaceMessage); 
+    SDL_Rect Message_rect;
+    Message_rect.x = x; 
+    Message_rect.y = y;
+    Message_rect.w = w; 
+    Message_rect.h = h; 
+    SDL_RenderCopy(ren, Message, NULL, &Message_rect);
+
+    TTF_CloseFont(font_ttf);
+}
 
 void OSM_Rendering(SDL_Renderer *ren){
 
@@ -120,9 +140,11 @@ void OSM_Rendering(SDL_Renderer *ren){
   wn_liste[3] = wn4;
 
   OSM_Tag wt1 = {"highway", "primary"};
+  OSM_Tag wt2 = {"name", "East 22nd Avenue"};
 
-  OSM_Tag *wt_liste = malloc(1 * sizeof(OSM_Tag));
+  OSM_Tag *wt_liste = malloc(2 * sizeof(OSM_Tag));
   wt_liste[0] = wt1;
+  wt_liste[1] = wt2;
 
   OSM_Way way1 = {000002, 1, 4, 1, wn_liste, wt_liste};
 
@@ -132,7 +154,7 @@ void OSM_Rendering(SDL_Renderer *ren){
   free(wt_liste);
   // #################################################
 
-  // TEST AFFICHAGE BUILDING
+  // TEST AFFICHAGE AREA
   OSM_Node bn1 = {0, 150.0, 260.0, 1, 0};
   OSM_Node bn2 = {0, 200.0, 320.0, 1, 0};
   OSM_Node bn3 = {0, 320.0, 300.0, 1, 0};
@@ -158,6 +180,10 @@ void OSM_Rendering(SDL_Renderer *ren){
   free(bn_liste);
   free(bt_liste);
   // #################################################
+
+  // TEST AFFICHAGE NODE
+  OSM_Node n1 = {0, 100.0, 200.0, 1, 0};
+  drawNode(ren, &n1);
 
   //short vx[6] = {50, 100, 150, 100, 50 , 0};
   //short vy[6] = {50, 50, 100, 150, 150, 100};
