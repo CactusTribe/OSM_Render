@@ -16,10 +16,20 @@
 #include "parser/osm_parser.h"
 #include "graphic/graphic.h"
 
+void Init_SDL();
+void CreateWindow(int w, int h);
+void CreateRenderer();
+void Quit_SDL();
+void EventsLoop();
+
+SDL_Window* pWindow = NULL;
+SDL_Renderer *ren = NULL;
+SDL_Event evenements;
+int terminer = 0;
+
 int main(int argc, char** argv){
 
     // ################# PARSER ##################
-
 	osmParserFile* osmFile;
 	osmParserDataSet* osmDataSet;
 
@@ -60,12 +70,23 @@ int main(int argc, char** argv){
 
     // ################# AFFICHAGE ##################
 
-    SDL_Window* pWindow = NULL;
-    SDL_Renderer *ren = NULL;
-    SDL_Event evenements;
-    int terminer = 0;
-
     /* Initialisation */
+    Init_SDL();
+    /* Création de la fenêtre */
+    CreateWindow(800, 600);
+    /* Création du renderer */
+    CreateRenderer();
+    /* Rendu OSM */
+    OSM_Rendering(ren);
+    /* Boucle d'évenement */
+    EventsLoop();
+
+    /* Fermeture de la SDL */
+    Quit_SDL();
+    exit(0);
+}
+
+void Init_SDL(){
     if (SDL_Init(SDL_INIT_VIDEO) != 0 ){
         fprintf(stdout,"Échec de l'initialisation de la SDL (%s)\n",SDL_GetError());
         exit(1);
@@ -74,25 +95,24 @@ int main(int argc, char** argv){
         fprintf(stdout,"Échec de l'initialisation de la SDL_ttf (%s)\n",SDL_GetError());
         exit(1); 
     }
+}
 
-    /* Création de la fenêtre */
+void CreateWindow(int w, int h){
     pWindow = SDL_CreateWindow("OSM_Render",SDL_WINDOWPOS_UNDEFINED,
-        SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_SHOWN);
+    SDL_WINDOWPOS_UNDEFINED, w, h, SDL_WINDOW_SHOWN);
+}
 
+void CreateRenderer(){
     ren = SDL_CreateRenderer(pWindow, 0, 0);
-
     SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
-    SDL_RenderClear(ren); // Clear la fenêtre
+}
 
-    OSM_Rendering(ren);
-    
-    // Affichage texte ------------------------------
-    SDL_Color black = {0, 0, 0}; 
-    drawTexte(ren, 200, 200, 100, 25, "fonts/times.ttf", 24, "texte", &black);
-    //  ----------------------------------------------
+void Quit_SDL(){
+    TTF_Quit();
+    SDL_Quit();
+}
 
-    SDL_RenderPresent(ren); // Affiche les modifications
-
+void EventsLoop(){
     if( pWindow ){
         while(!terminer){
           SDL_WaitEvent(&evenements);
@@ -107,9 +127,5 @@ int main(int argc, char** argv){
         fprintf(stderr,"Erreur de création de la fenêtre: %s\n",SDL_GetError());
         SDL_Quit();
         exit(1);
-    }
-
-    TTF_Quit();
-    SDL_Quit();
-    exit(0);
+    }   
 }

@@ -126,6 +126,7 @@ void drawTexte(SDL_Renderer *ren, int x, int y, int w, int h, char *font, int si
 }
 
 void OSM_Rendering(SDL_Renderer *ren){
+	SDL_RenderClear(ren); // Clear la fenêtre
 
   // TEST AFFICHAGE WAY
   OSM_Node wn1 = {0, 30.0, 30.0, 1, 0};
@@ -185,8 +186,10 @@ void OSM_Rendering(SDL_Renderer *ren){
   OSM_Node n1 = {0, 100.0, 200.0, 1, 0};
   drawNode(ren, &n1);
 
-  //short vx[6] = {50, 100, 150, 100, 50 , 0};
-  //short vy[6] = {50, 50, 100, 150, 150, 100};
-  //filledPolygonColor(ren, vx, vy, 6, 0xFF0000FF);
+  // Affichage texte ------------------------------
+  SDL_Color black = {0, 0, 0}; 
+  drawTexte(ren, 200, 200, 100, 25, "fonts/times.ttf", 24, "texte", &black);
+  //  ----------------------------------------------
 
+  SDL_RenderPresent(ren); // Affiche les modifications
 }
