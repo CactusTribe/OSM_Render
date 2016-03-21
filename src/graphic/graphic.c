@@ -132,11 +132,12 @@ void drawNode(SDL_Renderer *ren, OSM_Node *node){
 	double latitude = node->lat;
 	double longitude = node->lon;
 
+/*
 	printf("______________________________________\n");
 	printf("lon = %f lat = %f\n", longitude, latitude);
 	printf("posX = %f posY = %f\n", (longitude - min_X), (latitude - min_Y));
 	printf("interval_X = %f interval_Y = %f\n", interval_X, interval_Y);
-	
+	*/
 	x = ((longitude - min_X) / interval_X) * SCREEN_W;
 	y = ((latitude - min_Y) / interval_Y) * SCREEN_H;
 
@@ -160,7 +161,7 @@ void drawNode(SDL_Renderer *ren, OSM_Node *node){
   x = xnew + cx;
   y = ynew + cy;
 
-	printf("x = %f y = %f\n", x, y);
+	//printf("x = %f y = %f\n", x, y);
 	filledCircleRGBA(ren, x, SCREEN_H - y, 2, 50, 50, 50, 255);
 }
 
