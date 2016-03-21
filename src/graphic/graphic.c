@@ -1,6 +1,16 @@
 #include "graphic.h"
 #include <string.h>
 #include <SDL2/SDL_ttf.h>
+#include <math.h>
+
+SDL_Renderer *ren = NULL;
+OSM_Bounds *bounds = NULL;
+
+int SCREEN_W = 0;
+int SCREEN_H = 0;
+
+void draw_openedWay(SDL_Renderer *ren, OSM_Way *way);
+void draw_closedWay(SDL_Renderer *ren, OSM_Way *way);
 
 // Dictionnaire contenant les styles
 STYLE_ENTRY _styles[NB_STYLES] = {
@@ -34,8 +44,10 @@ STYLE_ENTRY* getStyleOf(char *key, char *value){
 	return &_styles[0];
 }
 
-void draw_openedWay(SDL_Renderer *ren, OSM_Way *way);
-void draw_closedWay(SDL_Renderer *ren, OSM_Way *way);
+void CreateRenderer(SDL_Window *pWindow){
+    ren = SDL_CreateRenderer(pWindow, 0, 0);
+    SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
+}
 
 /* Choisie la fonction d'affichage appropriée en fonction de la clé */ 
 void drawWay(SDL_Renderer *ren, OSM_Way *way){
@@ -107,7 +119,29 @@ void draw_closedWay(SDL_Renderer *ren, OSM_Way *way){
 }
 
 void drawNode(SDL_Renderer *ren, OSM_Node *node){
-	filledCircleRGBA(ren, node->lon, node->lat, 4, 100, 100, 100, 255);
+	double x,y;
+
+	double min_Y = bounds->minlat;
+	double max_Y = bounds->maxlat;
+	double interval_Y = max_Y - min_Y;
+
+	double min_X = bounds->minlon;
+	double max_X = bounds->maxlon;
+	double interval_X = max_X - min_X;
+
+	double latitude = node->lat;
+	double longitude = node->lon;
+
+	printf("______________________________________\n");
+	printf("lon = %f lat = %f\n", longitude, latitude);
+	printf("posX = %f posY = %f\n", (longitude - min_X), (latitude - min_Y));
+	printf("interval_X = %f interval_Y = %f\n", interval_X, interval_Y);
+	
+	x = ((longitude - min_X) / interval_X) * SCREEN_W;
+	y = ((latitude - min_Y) / interval_Y) * SCREEN_W;
+
+	printf("x = %f y = %f\n", x, y);
+	filledCircleRGBA(ren, x, y, 2, 50, 50, 50, 255);
 }
 
 void drawTexte(SDL_Renderer *ren, int x, int y, int w, int h, char *font, int size, char *texte, SDL_Color *color){
@@ -125,7 +159,20 @@ void drawTexte(SDL_Renderer *ren, int x, int y, int w, int h, char *font, int si
     TTF_CloseFont(font_ttf);
 }
 
-void OSM_Rendering(SDL_Renderer *ren){
+void drawOSM_ABR(ABR_Node *tree){
+	if(!tree) return;
+  if(tree->left)  drawOSM_ABR(tree->left);
+  drawNode(ren, &tree->nd);
+  //printf("id = %d lat = %f lon = %f\n", tree->id, tree->nd.lat, tree->nd.lon);
+  if(tree->right) drawOSM_ABR(tree->right);
+}
+
+void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Bounds *bds, ABR_Node *abr_osm_node){
+	bounds = bds;
+	SCREEN_W = w;
+	SCREEN_H = h;
+	/* Création du renderer */
+  CreateRenderer(pWindow);
 	SDL_RenderClear(ren); // Clear la fenêtre
 
   // TEST AFFICHAGE WAY
@@ -183,13 +230,22 @@ void OSM_Rendering(SDL_Renderer *ren){
   // #################################################
 
   // TEST AFFICHAGE NODE
-  OSM_Node n1 = {0, 100.0, 200.0, 1, 0};
+  OSM_Node n1 = {0, 39.749290, -104.973780, 1, 0};
+  OSM_Node n2 = {0, 39.752461, -104.969381, 1, 0}; 
+
   drawNode(ren, &n1);
+  drawNode(ren, &n2);
 
   // Affichage texte ------------------------------
   SDL_Color black = {0, 0, 0}; 
-  drawTexte(ren, 200, 200, 100, 25, "fonts/times.ttf", 24, "texte", &black);
+  drawTexte(ren, 200, 200, 100, 50, "fonts/times.ttf", 80, "texte", &black);
   //  ----------------------------------------------
 
+	drawOSM_ABR(abr_osm_node);
+
   SDL_RenderPresent(ren); // Affiche les modifications
+}
+
+void OSM_DestroyRenderer(){
+	SDL_DestroyRenderer(ren);
 }

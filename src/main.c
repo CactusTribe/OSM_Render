@@ -15,25 +15,29 @@
 
 #include "parser/osm_parser.h"
 #include "graphic/graphic.h"
+#include "model/OSM_ABR.h"
+
+#define SCREEN_W 800
+#define SCREEN_H 600
 
 void Init_SDL();
 void CreateWindow(int w, int h);
-void CreateRenderer();
 void Quit_SDL();
 void EventsLoop();
 
 SDL_Window* pWindow = NULL;
-SDL_Renderer *ren = NULL;
 SDL_Event evenements;
 int terminer = 0;
 
 int main(int argc, char** argv){
 
+    ABR_Node *abr_osm_node = NULL;
+
     // ################# PARSER ##################
 	osmParserFile* osmFile;
 	osmParserDataSet* osmDataSet;
 
-	open_OSM_ParserFile("./src/model/test.osm", &osmFile);
+	open_OSM_ParserFile("./src/model/test2.osm", &osmFile);
 
     getOSM_Bounds(osmFile, &osmDataSet);
     OSM_Bounds bounds;
@@ -48,6 +52,7 @@ int main(int argc, char** argv){
     {
     	node = bind_OSM_Node( getDataSet_element( osmDataSet, index)    );
     	printOSM_Node(node);
+        addNode(&abr_osm_node, node);
     }
     freeDataSet(osmDataSet);
 
@@ -67,22 +72,19 @@ int main(int argc, char** argv){
 
     freeDataSet(osmDataSet);
 
-
     // ################# AFFICHAGE ##################
 
     /* Initialisation */
     Init_SDL();
     /* Création de la fenêtre */
-    CreateWindow(800, 600);
-    /* Création du renderer */
-    CreateRenderer();
+    CreateWindow(SCREEN_W, SCREEN_H);
     /* Rendu OSM */
-    OSM_Rendering(ren);
-    /* Boucle d'évenement */
+    OSM_Rendering(pWindow, SCREEN_W, SCREEN_H, &bounds, abr_osm_node);
+    /* Boucle d'évenements */
     EventsLoop();
-
     /* Fermeture de la SDL */
     Quit_SDL();
+    clearTree(&abr_osm_node);
     exit(0);
 }
 
@@ -102,10 +104,6 @@ void CreateWindow(int w, int h){
     SDL_WINDOWPOS_UNDEFINED, w, h, SDL_WINDOW_SHOWN);
 }
 
-void CreateRenderer(){
-    ren = SDL_CreateRenderer(pWindow, 0, 0);
-    SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
-}
 
 void Quit_SDL(){
     TTF_Quit();
@@ -120,7 +118,7 @@ void EventsLoop(){
             terminer = 1;
         }
 
-        SDL_DestroyRenderer(ren);
+        OSM_DestroyRenderer();
         SDL_DestroyWindow(pWindow);
     }
     else{

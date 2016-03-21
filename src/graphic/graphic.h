@@ -4,6 +4,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL2_gfxPrimitives.h>
 #include "../model/osm_types.h"
+#include "../model/OSM_ABR.h"
 
 #define NB_STYLES 18
 
@@ -26,8 +27,12 @@ void drawWay(SDL_Renderer *ren, OSM_Way *way);
 void drawNode(SDL_Renderer *ren, OSM_Node *node);
 void drawTexte(SDL_Renderer *ren, int x, int y, int w, int h, 
 	char *font, int size, char *texte, SDL_Color *color);
+void drawOSM_ABR(ABR_Node *tree);
 
-void OSM_Rendering(SDL_Renderer *ren);
+void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Bounds *bds, ABR_Node *abr_osm_node);
+void CreateWindow(int w, int h);
+void CreateRenderer();
+void OSM_DestroyRenderer();
 STYLE_ENTRY* getStyleOf(char *key, char *value); 
 
 #endif
