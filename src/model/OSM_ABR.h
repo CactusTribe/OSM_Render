@@ -2,7 +2,6 @@
 #define _OSM_ABR_H_
 
 #include "../model/osm_types.h"
-#include "../graphic/graphic.h"
 
 typedef struct ABR_Node{
 	int id;
