@@ -138,10 +138,30 @@ void drawNode(SDL_Renderer *ren, OSM_Node *node){
 	printf("interval_X = %f interval_Y = %f\n", interval_X, interval_Y);
 	
 	x = ((longitude - min_X) / interval_X) * SCREEN_W;
-	y = ((latitude - min_Y) / interval_Y) * SCREEN_W;
+	y = ((latitude - min_Y) / interval_Y) * SCREEN_H;
+
+	//ROTATION
+	double angle = 0.0;
+	double cx = SCREEN_W / 2;
+	double cy = SCREEN_H / 2;
+
+	double s = sin(angle);
+  double c = cos(angle);
+
+  // translate point back to origin:
+  x -= cx;
+  y -= cy;
+
+  // rotate point
+  double xnew = x * c - y * s;
+  double ynew = x * s + y * c;
+
+  // translate point back:
+  x = xnew + cx;
+  y = ynew + cy;
 
 	printf("x = %f y = %f\n", x, y);
-	filledCircleRGBA(ren, x, y, 2, 50, 50, 50, 255);
+	filledCircleRGBA(ren, x, SCREEN_H - y, 2, 50, 50, 50, 255);
 }
 
 void drawTexte(SDL_Renderer *ren, int x, int y, int w, int h, char *font, int size, char *texte, SDL_Color *color){
@@ -196,7 +216,7 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Bounds *bds, ABR_Node 
 
   OSM_Way way1 = {000002, 1, 4, 1, wn_liste, wt_liste};
 
-  drawWay(ren, &way1);
+  //drawWay(ren, &way1);
 
   free(wn_liste);
   free(wt_liste);
@@ -223,7 +243,7 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Bounds *bds, ABR_Node 
 
   OSM_Way building1 = {0, 1, 5, 1, bn_liste, bt_liste};
 
-  drawWay(ren, &building1);
+  //drawWay(ren, &building1);
 
   free(bn_liste);
   free(bt_liste);
@@ -233,12 +253,12 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Bounds *bds, ABR_Node 
   OSM_Node n1 = {0, 39.749290, -104.973780, 1, 0};
   OSM_Node n2 = {0, 39.752461, -104.969381, 1, 0}; 
 
-  drawNode(ren, &n1);
-  drawNode(ren, &n2);
+  //drawNode(ren, &n1);
+  //drawNode(ren, &n2);
 
   // Affichage texte ------------------------------
   SDL_Color black = {0, 0, 0}; 
-  drawTexte(ren, 200, 200, 100, 50, "fonts/times.ttf", 80, "texte", &black);
+  //drawTexte(ren, 200, 200, 100, 50, "fonts/times.ttf", 80, "texte", &black);
   //  ----------------------------------------------
 
 	drawOSM_ABR(abr_osm_node);
