@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -g -Wall -std=c99 `xml2-config --cflags` `xml2-config --libs`
+CFLAGS = -g -Wall -std=c99 `xml2-config --cflags --libs`
 EXEC = OSM_Render
 
 SRC_DIR = src

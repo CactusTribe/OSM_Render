@@ -14,7 +14,8 @@
 #include <libxml/tree.h>
 
 #include "parser/osm_parser.h"
-#include "graphic/graphic.h"
+
+//#include "graphic/graphic.h"
 #include "model/OSM_ABR.h"
 
 #define SCREEN_W 800
@@ -31,10 +32,29 @@ int terminer = 0;
 
 int main(int argc, char** argv){
 
-    ABR_Node *abr_osm_node = NULL;
+   // ABR_Node *abr_osm_node = NULL;
+
+	OSM_Data* osmData;
+	getOSM_data("./src/model/test2.osm", &osmData);
+
+
+	for(int i= 0; i < osmData->nb_node; i++)
+		printOSM_Node(osmData->nodes[i]);
+
+
+	for(int i= 0; i < osmData->nb_way; i++)
+		printOSM_Way(osmData->ways[i]);
+
+
+	for(int i= 0; i < osmData->ways[560].nb_node; i++)
+		printf("%ld\n", osmData->ways[560].nodes[i]);
+
+	printOSM_Data(*osmData);
+
+
 
     // ################# PARSER ##################
-	osmParserFile* osmFile;
+/*	osmParserFile* osmFile;
 	osmParserDataSet* osmDataSet;
 
 	open_OSM_ParserFile("./src/model/test2.osm", &osmFile);
@@ -71,23 +91,24 @@ int main(int argc, char** argv){
     printf("nb relations: %d", getDataSet_lenght(osmDataSet));
 
     freeDataSet(osmDataSet);
+*/
 
     // ################# AFFICHAGE ##################
 
     /* Initialisation */
-    Init_SDL();
+   // Init_SDL();
     /* Création de la fenêtre */
-    CreateWindow(SCREEN_W, SCREEN_H);
+  //  CreateWindow(SCREEN_W, SCREEN_H);
     /* Rendu OSM */
-    OSM_Rendering(pWindow, SCREEN_W, SCREEN_H, &bounds, abr_osm_node);
+  //  OSM_Rendering(pWindow, SCREEN_W, SCREEN_H, &bounds, abr_osm_node);
     /* Boucle d'évenements */
-    EventsLoop();
+  //  EventsLoop();
     /* Fermeture de la SDL */
-    Quit_SDL();
-    clearTree(&abr_osm_node);
+  //  Quit_SDL();
+  //  clearTree(&abr_osm_node);
     exit(0);
 }
-
+/*
 void Init_SDL(){
     if (SDL_Init(SDL_INIT_VIDEO) != 0 ){
         fprintf(stdout,"Échec de l'initialisation de la SDL (%s)\n",SDL_GetError());
@@ -126,4 +147,4 @@ void EventsLoop(){
         SDL_Quit();
         exit(1);
     }   
-}
+}*/
