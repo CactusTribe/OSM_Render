@@ -8,6 +8,8 @@ OSM_Bounds *bounds = NULL;
 
 int SCREEN_W = 0;
 int SCREEN_H = 0;
+double interval_Y = 0;
+double interval_X = 0;
 
 void draw_openedWay(SDL_Renderer *ren, OSM_Way *way);
 void draw_closedWay(SDL_Renderer *ren, OSM_Way *way);
@@ -55,9 +57,11 @@ void drawWay(SDL_Renderer *ren, OSM_Way *way){
 
 	if(strcmp(key, "highway") == 0 || strcmp(key, "railway") == 0 || strcmp(key, "waterway") == 0){
 		draw_openedWay(ren, way);
+    printf("%s\n", " -> draw_openedWay");
 	}
 	else if(strcmp(key, "building") == 0 || strcmp(key, "natural") == 0 || strcmp(key, "landuse") == 0 || strcmp(key, "leisure") == 0){
 		draw_closedWay(ren, way);
+    printf("%s\n", " -> draw_closedWay");
 	}
 
 }
@@ -111,8 +115,10 @@ void draw_closedWay(SDL_Renderer *ren, OSM_Way *way){
 	short vy[nb_nodes];
 
 	for(int i=0; i < nb_nodes; i++){
-		vx[i] = way->nodes[i].lon;
-		vy[i] = way->nodes[i].lat;
+    printf("lon(%f) lat(%f)\n", way->nodes[i].lon, way->nodes[i].lat);
+    vx[i] = ((way->nodes[i].lon - bounds->minlon) / interval_X) * SCREEN_W;
+    vy[i] = ((way->nodes[i].lat - bounds->minlat) / interval_Y) * SCREEN_H;
+    printf("vx(%hd) vy(%hd)\n", vx[i], vy[i]);
 	}
 
   filledPolygonRGBA(ren, vx, vy, nb_nodes, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
@@ -121,47 +127,9 @@ void draw_closedWay(SDL_Renderer *ren, OSM_Way *way){
 void drawNode(SDL_Renderer *ren, OSM_Node *node){
 	double x,y;
 
-	double min_Y = bounds->minlat;
-	double max_Y = bounds->maxlat;
-	double interval_Y = max_Y - min_Y;
+	x = ((node->lon - bounds->minlon) / interval_X) * SCREEN_W;
+	y = ((node->lat - bounds->minlat) / interval_Y) * SCREEN_H;
 
-	double min_X = bounds->minlon;
-	double max_X = bounds->maxlon;
-	double interval_X = max_X - min_X;
-
-	double latitude = node->lat;
-	double longitude = node->lon;
-
-/*
-	printf("______________________________________\n");
-	printf("lon = %f lat = %f\n", longitude, latitude);
-	printf("posX = %f posY = %f\n", (longitude - min_X), (latitude - min_Y));
-	printf("interval_X = %f interval_Y = %f\n", interval_X, interval_Y);
-	*/
-	x = ((longitude - min_X) / interval_X) * SCREEN_W;
-	y = ((latitude - min_Y) / interval_Y) * SCREEN_H;
-
-	//ROTATION
-	double angle = 0.0;
-	double cx = SCREEN_W / 2;
-	double cy = SCREEN_H / 2;
-
-	double s = sin(angle);
-  double c = cos(angle);
-
-  // translate point back to origin:
-  x -= cx;
-  y -= cy;
-
-  // rotate point
-  double xnew = x * c - y * s;
-  double ynew = x * s + y * c;
-
-  // translate point back:
-  x = xnew + cx;
-  y = ynew + cy;
-
-	//printf("x = %f y = %f\n", x, y);
 	filledCircleRGBA(ren, x, SCREEN_H - y, 2, 50, 50, 50, 255);
 }
 
@@ -188,15 +156,19 @@ void drawOSM_ABR(ABR_Node *tree){
   if(tree->right) drawOSM_ABR(tree->right);
 }
 
-void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Bounds *bds, ABR_Node *abr_osm_node){
-	bounds = bds;
+void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data, ABR_Node *abr_osm_node){
+
+	bounds = data->bounds;
+  interval_Y = bounds->maxlat - bounds->minlat;
+  interval_X = bounds->maxlon - bounds->minlon;
 	SCREEN_W = w;
 	SCREEN_H = h;
+
 	/* Création du renderer */
   CreateRenderer(pWindow);
 	SDL_RenderClear(ren); // Clear la fenêtre
 
-  // TEST AFFICHAGE WAY
+/*  // TEST AFFICHAGE WAY
   OSM_Node wn1 = {0, 30.0, 30.0, 1, 0};
   OSM_Node wn2 = {0, 100.0, 100.0, 1, 0};
   OSM_Node wn3 = {0, 350.0, 120.0, 1, 0};
@@ -260,9 +232,16 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Bounds *bds, ABR_Node 
   // Affichage texte ------------------------------
   SDL_Color black = {0, 0, 0}; 
   //drawTexte(ren, 200, 200, 100, 50, "fonts/times.ttf", 80, "texte", &black);
-  //  ----------------------------------------------
+  //  ----------------------------------------------*/
 
-	drawOSM_ABR(abr_osm_node);
+  drawOSM_ABR(abr_osm_node);
+
+  for(int i= 0; i < data->nb_way; i++){
+    if(data->ways[i].tags[0].k != NULL && data->ways[i].tags[0].v != NULL){
+      printf("[%s:%s]\n", data->ways[i].tags[0].k, data->ways[i].tags[0].v);
+      drawWay(ren, &data->ways[i]);
+    }
+  }
 
   SDL_RenderPresent(ren); // Affiche les modifications
 }

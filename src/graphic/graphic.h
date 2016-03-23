@@ -29,7 +29,7 @@ void drawTexte(SDL_Renderer *ren, int x, int y, int w, int h,
 	char *font, int size, char *texte, SDL_Color *color);
 void drawOSM_ABR(ABR_Node *tree);
 
-void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Bounds *bds, ABR_Node *abr_osm_node);
+void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data, ABR_Node *abr_osm_node);
 void CreateWindow(int w, int h);
 void CreateRenderer();
 void OSM_DestroyRenderer();

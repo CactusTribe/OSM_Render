@@ -12,7 +12,6 @@
 #include <libxml/xpathInternals.h>
 
 
-
 struct osmParserFile {
 	xmlDocPtr	doc;
 };
@@ -57,7 +56,6 @@ static void _close_OSM_ParserFile(osmParserFilePtr file)
 {
 	xmlFreeDoc(file->doc); 
 	free(file);
-	return(PARSER_SUCESS);
 }
 
 static void _freeDataSet(osmParserDataSetPtr data)
@@ -70,7 +68,6 @@ static void _freeDataSet(osmParserDataSetPtr data)
 	xmlXPathFreeContext(data->xpathCtx);
 
 	free(data);
-	return(PARSER_SUCESS);
 }
 
 
@@ -92,13 +89,6 @@ static parser_error_t _execute_xpath(osmParserFilePtr file, const xmlChar* xpath
 	*dataOut = data;
 	return PARSER_SUCESS;
 }
-
-
-
-
-
-
-
 
 static int _countChildrenElementByName(xmlNodePtr node, const char* name)
 {

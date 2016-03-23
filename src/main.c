@@ -32,33 +32,31 @@ int terminer = 0;
 
 int main(int argc, char** argv){
 
-	OSM_Data* osmData;
-	getOSM_data("./src/model/test2.osm", &osmData);
+    OSM_Data* osmData;
+    getOSM_data("./src/model/test3.osm", &osmData);
 
-  // ################# PARSER ##################
+    // ################# PARSER ##################
 
-  ABR_Node *abr_osm_node = NULL;
+    ABR_Node *abr_osm_node = NULL;
 
-	for(int i= 0; i < osmData->nb_node; i++)
-  {
-		addNode(&abr_osm_node, osmData->nodes[i]);
-	}
+    for(int i= 0; i < osmData->nb_node; i++){
+        addNode(&abr_osm_node, osmData->nodes[i]);
+    }
 
+    // ################# AFFICHAGE ##################
 
-  // ################# AFFICHAGE ##################
-
-  /* Initialisation */
-  Init_SDL();
-  /* Création de la fenêtre */
-  CreateWindow(SCREEN_W, SCREEN_H);
-  /* Rendu OSM */
-  OSM_Rendering(pWindow, SCREEN_W, SCREEN_H, osmData->bounds, abr_osm_node);
-  /* Boucle d'évenements */
-  EventsLoop();
-  /* Fermeture de la SDL */
-  Quit_SDL();
-  clearTree(&abr_osm_node);
-  exit(0);
+    /* Initialisation */
+    Init_SDL();
+    /* Création de la fenêtre */
+    CreateWindow(SCREEN_W, SCREEN_H);
+    /* Rendu OSM */
+    OSM_Rendering(pWindow, SCREEN_W, SCREEN_H, osmData, abr_osm_node);
+    /* Boucle d'évenements */
+    EventsLoop();
+    /* Fermeture de la SDL */
+    Quit_SDL();
+    clearTree(&abr_osm_node);
+    exit(0);
 }
 
 void Init_SDL(){
