@@ -11,7 +11,7 @@ typedef struct ABR_Node{
 } ABR_Node;
 
 void addNode(ABR_Node **tree, OSM_Node nd);
-int searchNode(ABR_Node *tree, int id);
+OSM_Node* searchNode(ABR_Node *tree, int id);
 void printTree(ABR_Node *tree);
 void printReverseTree(ABR_Node *tree);
 void clearTree(ABR_Node **tree);

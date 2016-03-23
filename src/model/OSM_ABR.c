@@ -27,9 +27,9 @@ void addNode(ABR_Node **tree, OSM_Node nd){
 	else  *tree = elem;
 }
 
-int searchNode(ABR_Node *tree, int id){
+OSM_Node* searchNode(ABR_Node *tree, int id){
   while(tree){
-    if(id == tree->id) return 1;
+    if(id == tree->id) return &tree->nd;
     if(id > tree->id ) tree = tree->right;
     else tree = tree->left;
   }
