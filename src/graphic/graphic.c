@@ -51,7 +51,7 @@ void CreateRenderer(SDL_Window *pWindow){
 
 /* Choisie la fonction d'affichage appropriée en fonction de la clé */ 
 void drawWay(SDL_Renderer *ren, OSM_Way *way){
-	char *key = way->tagList[0].k;
+	char *key = way->tags[0].k;
 
 	if(strcmp(key, "highway") == 0 || strcmp(key, "railway") == 0 || strcmp(key, "waterway") == 0){
 		draw_openedWay(ren, way);
@@ -65,8 +65,8 @@ void drawWay(SDL_Renderer *ren, OSM_Way *way){
 /* Affichage d'une way ouverte */
 void draw_openedWay(SDL_Renderer *ren, OSM_Way *way){
 
-	char *key = way->tagList[0].k;
-	char *value = way->tagList[0].v;
+	char *key = way->tags[0].k;
+	char *value = way->tags[0].v;
 
 	STYLE_ENTRY *style = getStyleOf(key, value);
 
@@ -75,44 +75,44 @@ void draw_openedWay(SDL_Renderer *ren, OSM_Way *way){
 	RGBA_COLOR *rgb_OUT = &style->color_OUT;
 
 	// Draw shape
-  for(int i=0; i < (way->nb_nodes)-1 ; i++){
-  	if(i > 0 && i < (way->nb_nodes)-1){
-	  	filledCircleRGBA(ren, way->nodeList[i].lon, way->nodeList[i].lat, (weigth/2),
+  for(int i=0; i < (way->nb_node)-1 ; i++){
+  	if(i > 0 && i < (way->nb_node)-1){
+	  	filledCircleRGBA(ren, way->nodes[i].lon, way->nodes[i].lat, (weigth/2),
 	  		rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
 	  }
 
-  	thickLineRGBA(ren, way->nodeList[i].lon, way->nodeList[i].lat, 
- 			way->nodeList[i+1].lon, way->nodeList[i+1].lat, weigth, rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
+  	thickLineRGBA(ren, way->nodes[i].lon, way->nodes[i].lat, 
+ 			way->nodes[i+1].lon, way->nodes[i+1].lat, weigth, rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
   }
 
   // Draw inner shape
-  for(int i=0; i < (way->nb_nodes)-1 ; i++){
-  	if(i > 0 && i < (way->nb_nodes)-1){
-	  	filledCircleRGBA(ren, way->nodeList[i].lon, way->nodeList[i].lat, ((weigth-3)/2),
+  for(int i=0; i < (way->nb_node)-1 ; i++){
+  	if(i > 0 && i < (way->nb_node)-1){
+	  	filledCircleRGBA(ren, way->nodes[i].lon, way->nodes[i].lat, ((weigth-3)/2),
 	  		rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
 	  }
 
-  	thickLineRGBA(ren, way->nodeList[i].lon, way->nodeList[i].lat, 
- 			way->nodeList[i+1].lon, way->nodeList[i+1].lat, weigth-3, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
+  	thickLineRGBA(ren, way->nodes[i].lon, way->nodes[i].lat, 
+ 			way->nodes[i+1].lon, way->nodes[i+1].lat, weigth-3, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
   }
 }
 
 
 /* Affichage d'une way fermée */
 void draw_closedWay(SDL_Renderer *ren, OSM_Way *way){
-	char *key = way->tagList[0].k;
-	char *value = way->tagList[0].v;
+	char *key = way->tags[0].k;
+	char *value = way->tags[0].v;
 
 	STYLE_ENTRY *style = getStyleOf(key, value);
 	RGBA_COLOR *rgb_IN = &style->color_IN;
 
-	int nb_nodes = way->nb_nodes-1;
+	int nb_nodes = way->nb_node-1;
 	short vx[nb_nodes];
 	short vy[nb_nodes];
 
 	for(int i=0; i < nb_nodes; i++){
-		vx[i] = way->nodeList[i].lon;
-		vy[i] = way->nodeList[i].lat;
+		vx[i] = way->nodes[i].lon;
+		vy[i] = way->nodes[i].lat;
 	}
 
   filledPolygonRGBA(ren, vx, vy, nb_nodes, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);

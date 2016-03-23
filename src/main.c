@@ -15,7 +15,7 @@
 
 #include "parser/osm_parser.h"
 
-//#include "graphic/graphic.h"
+#include "graphic/graphic.h"
 #include "model/OSM_ABR.h"
 
 #define SCREEN_W 800
@@ -32,83 +32,35 @@ int terminer = 0;
 
 int main(int argc, char** argv){
 
-   // ABR_Node *abr_osm_node = NULL;
-
 	OSM_Data* osmData;
 	getOSM_data("./src/model/test2.osm", &osmData);
 
+  // ################# PARSER ##################
+
+  ABR_Node *abr_osm_node = NULL;
 
 	for(int i= 0; i < osmData->nb_node; i++)
-		printOSM_Node(osmData->nodes[i]);
+  {
+		addNode(&abr_osm_node, osmData->nodes[i]);
+	}
 
 
-	for(int i= 0; i < osmData->nb_way; i++)
-		printOSM_Way(osmData->ways[i]);
+  // ################# AFFICHAGE ##################
 
-
-	for(int i= 0; i < osmData->ways[560].nb_node; i++)
-		printf("%ld\n", osmData->ways[560].nodes[i]);
-
-	printOSM_Data(*osmData);
-
-
-
-    // ################# PARSER ##################
-/*	osmParserFile* osmFile;
-	osmParserDataSet* osmDataSet;
-
-	open_OSM_ParserFile("./src/model/test2.osm", &osmFile);
-
-    getOSM_Bounds(osmFile, &osmDataSet);
-    OSM_Bounds bounds;
-    bounds = bind_OSM_Bounds( getDataSet_element( osmDataSet, 0)    );
-    printOSM_Bounds(bounds);
-
-    getOSM_Node(osmFile, &osmDataSet);
-    printf("nb nodes: %d\n", getDataSet_lenght(osmDataSet));
-    OSM_Node node;
-    int index;
-    for(index=0; index< getDataSet_lenght(osmDataSet) ; index++)
-    {
-    	node = bind_OSM_Node( getDataSet_element( osmDataSet, index)    );
-    	printOSM_Node(node);
-        addNode(&abr_osm_node, node);
-    }
-    freeDataSet(osmDataSet);
-
-
-    getOSM_Way(osmFile, &osmDataSet);
-    printf("nb ways: %d\n", getDataSet_lenght(osmDataSet));
-    OSM_Way way;
-    for(index=0; index< getDataSet_lenght(osmDataSet) ; index++)
-    {
-        way = bind_OSM_Way( getDataSet_element( osmDataSet, index)    );
-        printOSM_Way(way);
-    }
-    freeDataSet(osmDataSet);
-
-    getOSM_Relation(osmFile, &osmDataSet);
-    printf("nb relations: %d", getDataSet_lenght(osmDataSet));
-
-    freeDataSet(osmDataSet);
-*/
-
-    // ################# AFFICHAGE ##################
-
-    /* Initialisation */
-   // Init_SDL();
-    /* Création de la fenêtre */
-  //  CreateWindow(SCREEN_W, SCREEN_H);
-    /* Rendu OSM */
-  //  OSM_Rendering(pWindow, SCREEN_W, SCREEN_H, &bounds, abr_osm_node);
-    /* Boucle d'évenements */
-  //  EventsLoop();
-    /* Fermeture de la SDL */
-  //  Quit_SDL();
-  //  clearTree(&abr_osm_node);
-    exit(0);
+  /* Initialisation */
+  Init_SDL();
+  /* Création de la fenêtre */
+  CreateWindow(SCREEN_W, SCREEN_H);
+  /* Rendu OSM */
+  OSM_Rendering(pWindow, SCREEN_W, SCREEN_H, osmData->bounds, abr_osm_node);
+  /* Boucle d'évenements */
+  EventsLoop();
+  /* Fermeture de la SDL */
+  Quit_SDL();
+  clearTree(&abr_osm_node);
+  exit(0);
 }
-/*
+
 void Init_SDL(){
     if (SDL_Init(SDL_INIT_VIDEO) != 0 ){
         fprintf(stdout,"Échec de l'initialisation de la SDL (%s)\n",SDL_GetError());
@@ -147,4 +99,4 @@ void EventsLoop(){
         SDL_Quit();
         exit(1);
     }   
-}*/
+}

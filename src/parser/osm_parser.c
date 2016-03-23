@@ -286,6 +286,22 @@ OSM_Node _bind_OSM_Node(xmlNodePtr node)
 	return osm_node;
 }
 
+OSM_Bounds _bind_OSM_Bounds(xmlNodePtr node)
+{
+	OSM_Bounds	bounds;
+	xmlAttr* attr= node->properties;
+	while(attr && attr->name && attr->children)
+	{
+		xmlChar* value= xmlNodeListGetString(node->doc, attr->children, 1);
+		ATTR_BINDING_DOUBLE(bounds.minlat, "minlat")
+		ATTR_BINDING_DOUBLE(bounds.minlon, "minlon")
+		ATTR_BINDING_DOUBLE(bounds.maxlat, "maxlat")
+		ATTR_BINDING_DOUBLE(bounds.maxlon, "maxlon")
+		xmlFree(value);
+		attr= attr->next;
+	}
+	return bounds;
+}
 
 OSM_Way _bind_OSM_Way(xmlNodePtr node)
 {
@@ -334,7 +350,6 @@ static OSM_Way* _getWaysList(osmParserDataSetPtr data)
 	return list;
 }
 
-
 parser_error_t getOSM_data(const char* filename, OSM_Data** dataOut)
 {
 	osmParserFile* 		osmFile;
@@ -351,6 +366,8 @@ parser_error_t getOSM_data(const char* filename, OSM_Data** dataOut)
 	error= _getOSM_Bounds(osmFile, &osmDataSet);
 	if(error != PARSER_SUCESS)
 		return error;
+	data->bounds = malloc( sizeof(OSM_Bounds));
+	*data->bounds =_bind_OSM_Bounds( _getXmlNodeByIndex(osmDataSet, 0));
 	_freeDataSet(osmDataSet);
 
 	// === Nodes ===
