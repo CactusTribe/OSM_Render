@@ -11,10 +11,11 @@ void fprintOSM_Bounds(FILE* stream, const OSM_Bounds bounds){
 
 void fprintOSM_Node(FILE* stream, const OSM_Node node){
 	fprintf(stream, "OSM_Node:\n");
-	fprintf(stream, "\tid: %d\n", node.id);
+	fprintf(stream, "\tid: %lu\n", node.id);
 	fprintf(stream, "\tlat: %f\n", node.lat);
 	fprintf(stream, "\tlon: %f\n", node.lon);
 	fprintf(stream, "\tvisible: %d\n", node.visible);
+	fprintf(stream, "\tnb_tag: %d\n", node.nb_tag);
 }
 
 void fprintOSM_Tag(FILE* stream, const OSM_Tag tag){
@@ -27,6 +28,14 @@ void fprintOSM_Way(FILE* stream, const OSM_Way way){
 	fprintf(stream, "OSM_Way:\n");
 	fprintf(stream, "\tid: %d\n", way.id);
 	fprintf(stream, "\tvisible: %d\n", way.visible);
+	fprintf(stream, "\tnb_tag: %d\n", way.nb_tag);
+	fprintf(stream, "\tnb_node: %d\n", way.nb_node);
+}
+
+void fprintOSM_Data(FILE* stream, const OSM_Data data){
+	fprintf(stream, "OSM_Data:\n");
+	fprintf(stream, "\tnb_node: %d\n", data.nb_node);
+	fprintf(stream, "\tnb_way: %d\n", data.nb_way);
 }
 
 void printOSM_Bounds(const OSM_Bounds bounds){
@@ -43,5 +52,9 @@ void printOSM_Tag(const OSM_Tag tag){
 
 void printOSM_Way(const OSM_Way way){
 	fprintOSM_Way(stdout, way);
+}
+
+void printOSM_Data(const OSM_Data data){
+	fprintOSM_Data(stdout, data);
 }
 
