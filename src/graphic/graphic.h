@@ -7,6 +7,7 @@
 #include "../model/OSM_ABR.h"
 
 #define ARGSEP " :\t\n"
+#define DICO_SIZE 1024
 
 typedef struct{
 	int r;
@@ -23,7 +24,8 @@ typedef struct{
 	RGBA_COLOR color_OUT;
 } STYLE_ENTRY;
 
-STYLE_ENTRY* openStyleSheet(char *file);
+void openStyleSheet(char *file);
+void freeDico(STYLE_ENTRY *dico);
 int tokenize_command(char* argl, char** argv);
 
 void drawWay(SDL_Renderer *ren, OSM_Way *way);

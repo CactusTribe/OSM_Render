@@ -8,8 +8,8 @@ SDL_Renderer *ren = NULL;
 OSM_Bounds *bounds = NULL;
 ABR_Node *abr_osm_node = NULL;
 
-STYLE_ENTRY *_dico = NULL;
-int dico_size = 0;
+STYLE_ENTRY _dico[DICO_SIZE] = {};
+int NB_STYLES = 0;
 
 int SCREEN_W = 0;
 int SCREEN_H = 0;
@@ -22,7 +22,7 @@ void draw_closedWay(SDL_Renderer *ren, OSM_Way *way);
 
 // Retourne le style en fonction de la clé
 STYLE_ENTRY* getStyleOf(char *key, char *value){
-	for(int i=0; i<dico_size; i++){
+	for(int i=0; i<NB_STYLES; i++){
 		if(strcmp(key, _dico[i].key) == 0 && strcmp(value, _dico[i].value) == 0){
 			return &_dico[i];
 		}
@@ -31,49 +31,45 @@ STYLE_ENTRY* getStyleOf(char *key, char *value){
 }
 
 
-STYLE_ENTRY* openStyleSheet(char *file){
+void openStyleSheet(char *file){
   FILE* f = fopen(file, "r");
-  STYLE_ENTRY *dico;
 
   if(f != NULL){
     char buff[1024];
-    int i = 0;
 
     while(fgets(buff, sizeof(buff), f) != NULL){
-      i++;
+      NB_STYLES++;
     }
-    
-    dico_size = i;
-    dico = malloc(dico_size * sizeof(STYLE_ENTRY));
-
-    i = 0;
     rewind(f);
-    while(fgets(buff, sizeof(buff), f) != NULL){           
-      char* argv[64];
+
+    int i = 0;
+    char* argv[64];
+
+    while(fgets(buff, sizeof(buff), f) != NULL){  
       tokenize_command(buff, argv);
 
-      dico[i].key = argv[0];
-      dico[i].value = argv[1];
-      dico[i].weigth = atoi(argv[2]);
+      char *key = malloc(64 * sizeof(char));
+      char *value = malloc(64 * sizeof(char));
+
+      strcpy(key, argv[0]);
+      strcpy(value, argv[1]);
+
+      _dico[i].key = key;
+      _dico[i].value = value;
+      _dico[i].weigth = atoi(argv[2]);
 
       RGBA_COLOR color_IN = {atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6])};
       RGBA_COLOR color_OUT = {atoi(argv[7]), atoi(argv[8]), atoi(argv[9]), atoi(argv[10])};
 
-      dico[i].color_IN = color_IN;
-      dico[i].color_OUT = color_OUT;
+      _dico[i].color_IN = color_IN;
+      _dico[i].color_OUT = color_OUT;
+
       i++;
-
-      printf("Add : [%s,%s,%d,%d,%d,%d,%d,%d,%d,%d,%d]\n", argv[0], argv[1], atoi(argv[2]), atoi(argv[3]), atoi(argv[4]), 
-        atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), atoi(argv[8]), atoi(argv[9]), atoi(argv[10]));
     }
-
-    return dico;
   }
   else{
     fprintf(stderr, "%s\n", "Erreur lors de l'ouverture du fichier.");
   }
-
-  return NULL;
 }
 
 
@@ -83,6 +79,13 @@ int tokenize_command(char* argl, char** argv) {
   for (i = 0; argv[i] != NULL; ++i)
       argv[i+1] = strtok(NULL, ARGSEP);
   return i;
+}
+
+void freeDico(STYLE_ENTRY *dico){
+  for(int i=0; i<DICO_SIZE; i++){
+    free(_dico[i].key);
+    free(_dico[i].value);
+  }
 }
 
 
@@ -156,15 +159,15 @@ void draw_openedWay(SDL_Renderer *ren, OSM_Way *way){
 
 /* Affichage d'une way fermée */
 void draw_closedWay(SDL_Renderer *ren, OSM_Way *way){
-	char *key = way->tags[0].k;
-	char *value = way->tags[0].v;
+	//char *key = way->tags[0].k;
+	//char *value = way->tags[0].v;
 
-	STYLE_ENTRY *style = getStyleOf(key, value);
-	RGBA_COLOR *rgb_IN = &style->color_IN;
+	//STYLE_ENTRY *style = getStyleOf(key, value);
+	//RGBA_COLOR *rgb_IN = &style->color_IN;
 
 	int nb_nodes = way->nb_node-1;
-	short vx[nb_nodes];
-	short vy[nb_nodes];
+	//short vx[nb_nodes];
+	//short vy[nb_nodes];
 
 	for(int i=0; i < nb_nodes; i++){
     if(way->nodes[i].id != 0){
@@ -231,7 +234,7 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data, ABR_Node *
 	SCREEN_H = h;
 
   // Ouverture du fichier de styles
-  _dico = openStyleSheet("styles.txt");
+  openStyleSheet("styles.txt");
 
 	/* Création du renderer */
   CreateRenderer(pWindow);
@@ -239,13 +242,14 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data, ABR_Node *
 
   drawOSM_ABR(abr_osm_node);
 
+  /*
   for(int i= 0; i < data->nb_way; i++){
     if(data->ways[i].tags[0].k != NULL && data->ways[i].tags[0].v != NULL){
       //printf("[%s:%s]\n", data->ways[i].tags[0].k, data->ways[i].tags[0].v);
       drawWay(ren, &data->ways[i]);
     }
   }
-
+*/
   // TEST AFFICHAGE WAY
   OSM_Node wn1 = {0, 30.0, 30.0, 1, 0};
   OSM_Node wn2 = {0, 100.0, 100.0, 1, 0};
@@ -258,7 +262,7 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data, ABR_Node *
   wn_liste[2] = wn3;
   wn_liste[3] = wn4;
 
-  OSM_Tag wt1 = {"highway", "service"};
+  OSM_Tag wt1 = {"highway", "primary"};
   OSM_Tag wt2 = {"name", "East 22nd Avenue"};
 
   OSM_Tag *wt_liste = malloc(2 * sizeof(OSM_Tag));
@@ -313,7 +317,7 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data, ABR_Node *
   //drawTexte(ren, 200, 200, 100, 50, "fonts/times.ttf", 80, "texte", &black);
   //  ----------------------------------------------*/
 
-  free(_dico);
+  freeDico(_dico);
   SDL_RenderPresent(ren); // Affiche les modifications
 }
 
