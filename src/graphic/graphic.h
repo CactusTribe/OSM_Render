@@ -6,7 +6,7 @@
 #include "../model/osm_types.h"
 #include "../model/OSM_ABR.h"
 
-#define NB_STYLES 18
+#define ARGSEP " :\t\n"
 
 typedef struct{
 	int r;
@@ -22,6 +22,9 @@ typedef struct{
 	RGBA_COLOR color_IN;
 	RGBA_COLOR color_OUT;
 } STYLE_ENTRY;
+
+STYLE_ENTRY* openStyleSheet(char *file);
+int tokenize_command(char* argl, char** argv);
 
 void drawWay(SDL_Renderer *ren, OSM_Way *way);
 void drawNode(SDL_Renderer *ren, OSM_Node *node);

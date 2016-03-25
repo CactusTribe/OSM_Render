@@ -2,10 +2,14 @@
 #include <string.h>
 #include <SDL2/SDL_ttf.h>
 #include <math.h>
+#include <stdio.h>
 
 SDL_Renderer *ren = NULL;
 OSM_Bounds *bounds = NULL;
 ABR_Node *abr_osm_node = NULL;
+
+STYLE_ENTRY *_dico = NULL;
+int dico_size = 0;
 
 int SCREEN_W = 0;
 int SCREEN_H = 0;
@@ -15,42 +19,78 @@ double interval_X = 0;
 void draw_openedWay(SDL_Renderer *ren, OSM_Way *way);
 void draw_closedWay(SDL_Renderer *ren, OSM_Way *way);
 
-// Dictionnaire contenant les styles
-STYLE_ENTRY _styles[NB_STYLES] = {
-	{"default", "default", 15, {190,190,190,255}, {100,100,100,255}},
-	{"highway", "primary", 25, {254,216,155,255}, {176,124,0,255}},
-	{"highway", "secondary", 25, {243,254,181,255}, {117,144,0,255}},
-	{"highway", "tertiary", 25, {255,255,255,255}, {174,174,174,255}},
-	{"highway", "unclassified", 15, {255,255,255,255}, {174,174,174,255}},
-	{"highway", "residential", 15, {255,255,255,255}, {174,174,174,255}},
-	{"highway", "service", 8, {255,255,255,255}, {174,174,174,255}},
-	{"highway", "living_street", 15, {237,238,237,255}, {197,197,197,255}},
-	{"highway", "pedestrian", 15, {223,220,234,255}, {168,166,167,255}},
-	{"railway", "tram", 9, {69,69,69,255}, {69,69,69,255}},
-	{"waterway", "river", 15, {136,189,214,255}, {136,189,214,255}},
-	{"waterway", "canal", 8, {136,189,214,255}, {136,189,214,255}},
-	{"natural", "water", 0, {136,189,214,255}, {136,189,214,255}},
-	{"natural", "coastline", 0, {136,189,214,255}, {136,189,214,255}},
-	{"building", "yes", 0, {190,190,190,255}, {190,190,190,255}},
-	{"landuse", "grass", 0, {197,236,148,255}, {197,236,148,255}},
-	{"landuse", "forest", 0, {157,202,138,255}, {157,202,138,255}},
-	{"leisure", "park", 0, {205,247,201,255}, {205,247,201,255}}
-};
 
 // Retourne le style en fonction de la clé
 STYLE_ENTRY* getStyleOf(char *key, char *value){
-	for(int i=0; i<NB_STYLES; i++){
-		if(strcmp(key, _styles[i].key) == 0 && strcmp(value, _styles[i].value) == 0){
-			return &_styles[i];
+	for(int i=0; i<dico_size; i++){
+		if(strcmp(key, _dico[i].key) == 0 && strcmp(value, _dico[i].value) == 0){
+			return &_dico[i];
 		}
 	}
-	return &_styles[0];
+	return &_dico[0];
 }
+
+
+STYLE_ENTRY* openStyleSheet(char *file){
+  FILE* f = fopen(file, "r");
+  STYLE_ENTRY *dico;
+
+  if(f != NULL){
+    char buff[1024];
+    int i = 0;
+
+    while(fgets(buff, sizeof(buff), f) != NULL){
+      i++;
+    }
+    
+    dico_size = i;
+    dico = malloc(dico_size * sizeof(STYLE_ENTRY));
+
+    i = 0;
+    rewind(f);
+    while(fgets(buff, sizeof(buff), f) != NULL){           
+      char* argv[64];
+      tokenize_command(buff, argv);
+
+      dico[i].key = argv[0];
+      dico[i].value = argv[1];
+      dico[i].weigth = atoi(argv[2]);
+
+      RGBA_COLOR color_IN = {atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), atoi(argv[6])};
+      RGBA_COLOR color_OUT = {atoi(argv[7]), atoi(argv[8]), atoi(argv[9]), atoi(argv[10])};
+
+      dico[i].color_IN = color_IN;
+      dico[i].color_OUT = color_OUT;
+      i++;
+
+      printf("Add : [%s,%s,%d,%d,%d,%d,%d,%d,%d,%d,%d]\n", argv[0], argv[1], atoi(argv[2]), atoi(argv[3]), atoi(argv[4]), 
+        atoi(argv[5]), atoi(argv[6]), atoi(argv[7]), atoi(argv[8]), atoi(argv[9]), atoi(argv[10]));
+    }
+
+    return dico;
+  }
+  else{
+    fprintf(stderr, "%s\n", "Erreur lors de l'ouverture du fichier.");
+  }
+
+  return NULL;
+}
+
+
+int tokenize_command(char* argl, char** argv) {
+  int i;
+  argv[0] = strtok(argl, ARGSEP);
+  for (i = 0; argv[i] != NULL; ++i)
+      argv[i+1] = strtok(NULL, ARGSEP);
+  return i;
+}
+
 
 void CreateRenderer(SDL_Window *pWindow){
     ren = SDL_CreateRenderer(pWindow, 0, 0);
     SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
 }
+
 
 /* Choisie la fonction d'affichage appropriée en fonction de la clé */ 
 void drawWay(SDL_Renderer *ren, OSM_Way *way){
@@ -58,14 +98,14 @@ void drawWay(SDL_Renderer *ren, OSM_Way *way){
 
 	if(strcmp(key, "highway") == 0 || strcmp(key, "railway") == 0 || strcmp(key, "waterway") == 0){
 		draw_openedWay(ren, way);
-    printf("%s\n", " -> draw_openedWay");
+    //printf("%s\n", " -> draw_openedWay");
 	}
 	else if(strcmp(key, "building") == 0 || strcmp(key, "natural") == 0 || strcmp(key, "landuse") == 0 || strcmp(key, "leisure") == 0){
 		draw_closedWay(ren, way);
-    printf("%s\n", " -> draw_closedWay");
+    //printf("%s\n", " -> draw_closedWay");
 	}
-
 }
+
 
 /* Affichage d'une way ouverte */
 void draw_openedWay(SDL_Renderer *ren, OSM_Way *way){
@@ -130,7 +170,7 @@ void draw_closedWay(SDL_Renderer *ren, OSM_Way *way){
     if(way->nodes[i].id != 0){
       OSM_Node *nd = searchNode(abr_osm_node, way->nodes[i].id);
       if(nd != 0){
-        printf("%ld\n", nd->id);
+        //printf("%ld\n", nd->id);
         //printf("lon %f lat %f\n", nd->lon, nd->lat);
 
         //vx[i] = ((nd->lon - bounds->minlon) / interval_X) * SCREEN_W;
@@ -145,6 +185,7 @@ void draw_closedWay(SDL_Renderer *ren, OSM_Way *way){
 
   //filledPolygonRGBA(ren, vx, vy, nb_nodes, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
 }
+
 
 void drawNode(SDL_Renderer *ren, OSM_Node *node){
 	double x,y;
@@ -170,6 +211,7 @@ void drawTexte(SDL_Renderer *ren, int x, int y, int w, int h, char *font, int si
     TTF_CloseFont(font_ttf);
 }
 
+
 void drawOSM_ABR(ABR_Node *tree){
 	if(!tree) return;
   if(tree->left)  drawOSM_ABR(tree->left);
@@ -177,6 +219,7 @@ void drawOSM_ABR(ABR_Node *tree){
   //printf("id = %d lat = %f lon = %f\n", tree->id, tree->nd.lat, tree->nd.lon);
   if(tree->right) drawOSM_ABR(tree->right);
 }
+
 
 void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data, ABR_Node *abr){
 
@@ -187,20 +230,21 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data, ABR_Node *
 	SCREEN_W = w;
 	SCREEN_H = h;
 
+  // Ouverture du fichier de styles
+  _dico = openStyleSheet("styles.txt");
+
 	/* Création du renderer */
   CreateRenderer(pWindow);
 	SDL_RenderClear(ren); // Clear la fenêtre
-
 
   drawOSM_ABR(abr_osm_node);
 
   for(int i= 0; i < data->nb_way; i++){
     if(data->ways[i].tags[0].k != NULL && data->ways[i].tags[0].v != NULL){
-      printf("[%s:%s]\n", data->ways[i].tags[0].k, data->ways[i].tags[0].v);
+      //printf("[%s:%s]\n", data->ways[i].tags[0].k, data->ways[i].tags[0].v);
       drawWay(ren, &data->ways[i]);
     }
   }
-
 
   // TEST AFFICHAGE WAY
   OSM_Node wn1 = {0, 30.0, 30.0, 1, 0};
@@ -214,7 +258,7 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data, ABR_Node *
   wn_liste[2] = wn3;
   wn_liste[3] = wn4;
 
-  OSM_Tag wt1 = {"highway", "primary"};
+  OSM_Tag wt1 = {"highway", "service"};
   OSM_Tag wt2 = {"name", "East 22nd Avenue"};
 
   OSM_Tag *wt_liste = malloc(2 * sizeof(OSM_Tag));
@@ -269,8 +313,10 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data, ABR_Node *
   //drawTexte(ren, 200, 200, 100, 50, "fonts/times.ttf", 80, "texte", &black);
   //  ----------------------------------------------*/
 
+  free(_dico);
   SDL_RenderPresent(ren); // Affiche les modifications
 }
+
 
 void OSM_DestroyRenderer(){
 	SDL_DestroyRenderer(ren);
