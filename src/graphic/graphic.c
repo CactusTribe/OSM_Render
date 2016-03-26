@@ -226,7 +226,7 @@ void drawTexte(SDL_Renderer *ren, int x, int y, int w, int h, char *font, int si
 void drawOSM_ABR(ABR_Node *tree){
 	if(!tree) return;
   if(tree->left)  drawOSM_ABR(tree->left);
-  drawNode(ren, &tree->nd);
+  drawNode(ren, (OSM_Node *)&tree->nd);
   //printf("id = %d lat = %f lon = %f\n", tree->id, tree->nd.lat, tree->nd.lon);
   if(tree->right) drawOSM_ABR(tree->right);
 }

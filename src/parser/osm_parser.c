@@ -342,6 +342,9 @@ parser_error_t getOSM_data(const char* filename, OSM_Data** dataOut)
 	parser_error_t 		error;
 
 	OSM_Data* data= (OSM_Data*) malloc(sizeof(OSM_Data));
+	data->abr_node = NULL;
+	data->abr_way = NULL;
+
 	error= _open_OSM_ParserFile(filename, &osmFile);
 	if(error != PARSER_SUCESS)
 		return error;
@@ -379,7 +382,7 @@ parser_error_t getOSM_data(const char* filename, OSM_Data** dataOut)
 	for(int i= 0; i < data->nb_way; i++){
 		addNode(&data->abr_way, data->ways[i].id, &data->ways[i]);
 	}
-
+	
 	*dataOut = data;
 
 	_close_OSM_ParserFile(osmFile);

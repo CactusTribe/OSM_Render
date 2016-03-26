@@ -11,7 +11,7 @@ ifeq ($(UNAME_S),Linux)
 	LIBFLAGS =  `sdl2-config --libs` -lSDL2_ttf -lSDL2_gfx `xml2-config --libs`
 endif
 ifeq ($(UNAME_S),Darwin)
-	LIBFLAGS = -lSDL2 -L/usr/local/opt/libxml2/lib -lSDL2_gfx -lSDL2_ttf
+	LIBFLAGS = -lSDL2 -lxml2 -lSDL2_gfx -lSDL2_ttf 
 endif
 
 # Solution provisoire
