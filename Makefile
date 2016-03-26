@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -g -Wall -std=c99 `xml2-config --cflags --libs`
+CFLAGS = -g -Wall -std=c99 `xml2-config --cflags` `sdl2-config --cflags`
 EXEC = OSM_Render
 
 SRC_DIR = src
@@ -8,7 +8,7 @@ EXEC_FILE= $(BIN_DIR)/$(EXEC)
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
-	LIBFLAGS = -lSDL2 -lxml2 -lSDL2_gfx -lSDL2_ttf
+	LIBFLAGS =  `sdl2-config --libs` -lSDL2_ttf -lSDL2_gfx `xml2-config --libs`
 endif
 ifeq ($(UNAME_S),Darwin)
 	LIBFLAGS = -lSDL2 -L/usr/local/opt/libxml2/lib -lSDL2_gfx -lSDL2_ttf
