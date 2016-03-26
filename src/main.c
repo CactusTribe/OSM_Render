@@ -35,6 +35,7 @@ int main(int argc, char** argv){
     OSM_Data* osmData;
     getOSM_data("./src/model/test3.osm", &osmData);
 
+
     // ################# AFFICHAGE ##################
 
     /* Initialisation */
@@ -47,6 +48,8 @@ int main(int argc, char** argv){
     EventsLoop();
     /* Fermeture de la SDL */
     Quit_SDL();
+
+	freeOSM_data(osmData);
 
     exit(0);
 }

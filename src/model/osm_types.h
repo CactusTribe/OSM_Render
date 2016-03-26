@@ -57,5 +57,4 @@ extern void printOSM_Tag(const OSM_Tag tag);
 extern void printOSM_Way(const OSM_Way way);
 extern void printOSM_Data(const OSM_Data data);
 
-OSM_Node* seachNodeById(const OSM_Node* nodes, int size, const long int id);
 #endif /* _OSM_TYPES_H_ */

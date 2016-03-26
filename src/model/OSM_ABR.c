@@ -52,13 +52,9 @@ void printReverseTree(ABR_Node *tree){
 }
 
 
-void clearTree(ABR_Node **tree){
-  ABR_Node *tmpTree = *tree;
-
+void clearTree(ABR_Node *tree){
   if(!tree) return;
-  if(tmpTree->left)  clearTree(&tmpTree->left);
-  if(tmpTree->right) clearTree(&tmpTree->right);
-
-  free(tmpTree);
-  *tree = NULL;
+  if(tree->left)  clearTree(tree->left);
+  if(tree->right) clearTree(tree->right);
+  free(tree);
 }

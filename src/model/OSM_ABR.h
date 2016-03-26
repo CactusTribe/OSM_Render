@@ -12,7 +12,7 @@ void addNode(ABR_Node **tree, unsigned long int key, void* nd);
 void* searchNode(ABR_Node *tree, unsigned long int  id);
 void printTree(ABR_Node *tree);
 void printReverseTree(ABR_Node *tree);
-void clearTree(ABR_Node **tree);
+void clearTree(ABR_Node *tree);
 
 
 #endif

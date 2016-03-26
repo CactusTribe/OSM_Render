@@ -394,6 +394,25 @@ parser_error_t getOSM_data(const char* filename, OSM_Data** dataOut)
 	return(PARSER_SUCESS);
 }
 
+void freeOSM_data(OSM_Data* data)
+{
+	free(data->bounds);
 
+	for(int i=0; i< data->nb_node; i++)
+		free(data->nodes[i].tags);
+	free(data->nodes);
+
+	for(int i=0; i< data->nb_way; i++)
+	{
+		free(data->ways[i].tags);
+		free(data->ways[i].nodes);
+	}
+	free(data->ways);
+
+	clearTree(data->abr_node);
+	clearTree(data->abr_way);
+
+	free(data);
+}
 
 
