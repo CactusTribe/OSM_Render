@@ -97,15 +97,23 @@ void CreateRenderer(SDL_Window *pWindow){
 
 /* Choisie la fonction d'affichage appropriée en fonction de la clé */ 
 void drawWay(SDL_Renderer *ren, OSM_Way *way){
-	char *key = way->tags[0].k;
+	
+	if(way->nb_tag > 0)
+	{
+		char *key = way->tags[0].k;
 
-	if(strcmp(key, "highway") == 0 || strcmp(key, "railway") == 0 || strcmp(key, "waterway") == 0){
-		draw_openedWay(ren, way);
-    //printf("%s\n", " -> draw_openedWay");
+		if(strcmp(key, "highway") == 0 || strcmp(key, "railway") == 0 || strcmp(key, "waterway") == 0){
+			draw_openedWay(ren, way);
+		  //printf("%s\n", " -> draw_openedWay");
+		}
+		else if(strcmp(key, "building") == 0 || strcmp(key, "natural") == 0 || strcmp(key, "landuse") == 0 || strcmp(key, "leisure") == 0){
+			draw_closedWay(ren, way);
+		  //printf("%s\n", " -> draw_closedWay");
+		}
 	}
-	else if(strcmp(key, "building") == 0 || strcmp(key, "natural") == 0 || strcmp(key, "landuse") == 0 || strcmp(key, "leisure") == 0){
-		draw_closedWay(ren, way);
-    //printf("%s\n", " -> draw_closedWay");
+	else
+	{
+			draw_closedWay(ren, way);
 	}
 }
 
@@ -128,8 +136,8 @@ void draw_openedWay(SDL_Renderer *ren, OSM_Way *way){
 	// Draw shape
   for(int i=0; i < (way->nb_node)-1 ; i++){
 
-    latitude = way->nodes[i].lat;
-    longitude = way->nodes[i].lon;
+    latitude = way->nodes[i]->lat;
+    longitude = way->nodes[i]->lon;
 
   	if(i > 0 && i < (way->nb_node)-1){
 	  	filledCircleRGBA(ren, longitude, latitude, (weigth/2),
@@ -137,14 +145,14 @@ void draw_openedWay(SDL_Renderer *ren, OSM_Way *way){
 	  }
 
   	thickLineRGBA(ren, longitude, latitude, 
- 			way->nodes[i+1].lon, way->nodes[i+1].lat, weigth, rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
+ 			way->nodes[i+1]->lon, way->nodes[i+1]->lat, weigth, rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
   }
 
   // Draw inner shape
   for(int i=0; i < (way->nb_node)-1 ; i++){
 
-    latitude = way->nodes[i].lat;
-    longitude = way->nodes[i].lon;
+    latitude = way->nodes[i]->lat;
+    longitude = way->nodes[i]->lon;
 
   	if(i > 0 && i < (way->nb_node)-1){
 	  	filledCircleRGBA(ren, longitude, latitude, ((weigth-3)/2),
@@ -152,7 +160,7 @@ void draw_openedWay(SDL_Renderer *ren, OSM_Way *way){
 	  }
 
   	thickLineRGBA(ren, longitude, latitude, 
- 			way->nodes[i+1].lon, way->nodes[i+1].lat, weigth-3, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
+ 			way->nodes[i+1]->lon, way->nodes[i+1]->lat, weigth-3, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
   }
 }
 
@@ -170,8 +178,8 @@ void draw_closedWay(SDL_Renderer *ren, OSM_Way *way){
 	//short vy[nb_nodes];
 
 	for(int i=0; i < nb_nodes; i++){
-    if(way->nodes[i].id != 0){
-      OSM_Node *nd = searchNode(abr_osm_node, way->nodes[i].id);
+    if(way->nodes[i]->id != 0){
+      OSM_Node *nd = searchNode(abr_osm_node, way->nodes[i]->id);
       if(nd != 0){
         //printf("%ld\n", nd->id);
         //printf("lon %f lat %f\n", nd->lon, nd->lat);
@@ -224,9 +232,9 @@ void drawOSM_ABR(ABR_Node *tree){
 }
 
 
-void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data, ABR_Node *abr){
+void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data){
 
-  abr_osm_node = abr;
+  abr_osm_node = data->abr_node;
 	bounds = data->bounds;
   interval_Y = bounds->maxlat - bounds->minlat;
   interval_X = bounds->maxlon - bounds->minlon;
@@ -240,7 +248,12 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data, ABR_Node *
   CreateRenderer(pWindow);
 	SDL_RenderClear(ren); // Clear la fenêtre
 
-  drawOSM_ABR(abr_osm_node);
+
+	for(int i=0; i< data->nb_way; i++)
+		drawWay(ren, &data->ways[i]);
+
+	for(int i=0; i< data->nb_node; i++)
+		drawNode(ren, &data->nodes[i]);
 
   /*
   for(int i= 0; i < data->nb_way; i++){
@@ -251,7 +264,7 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data, ABR_Node *
   }
 */
   // TEST AFFICHAGE WAY
-  OSM_Node wn1 = {0, 30.0, 30.0, 1, 0};
+ /* OSM_Node wn1 = {0, 30.0, 30.0, 1, 0};
   OSM_Node wn2 = {0, 100.0, 100.0, 1, 0};
   OSM_Node wn3 = {0, 350.0, 120.0, 1, 0};
   OSM_Node wn4 = {0, 360.0, 190.0, 1, 0};
@@ -274,7 +287,7 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data, ABR_Node *
   drawWay(ren, &way1);
 
   free(wn_liste);
-  free(wt_liste);
+  free(wt_liste);*/
   // #################################################
 
 /*

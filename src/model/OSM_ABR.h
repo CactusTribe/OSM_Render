@@ -1,17 +1,15 @@
 #ifndef _OSM_ABR_H_
 #define _OSM_ABR_H_
 
-#include "../model/osm_types.h"
-
 typedef struct ABR_Node{
-	int id;
-	OSM_Node nd;
+	unsigned long int id;
+	void* nd;
 	struct ABR_Node *left;
 	struct ABR_Node *right;
 } ABR_Node;
 
-void addNode(ABR_Node **tree, OSM_Node nd);
-OSM_Node* searchNode(ABR_Node *tree, int id);
+void addNode(ABR_Node **tree, unsigned long int key, void* nd);
+void* searchNode(ABR_Node *tree, unsigned long int  id);
 void printTree(ABR_Node *tree);
 void printReverseTree(ABR_Node *tree);
 void clearTree(ABR_Node **tree);

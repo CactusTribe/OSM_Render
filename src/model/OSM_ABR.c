@@ -2,12 +2,12 @@
 #include <stdlib.h>
 #include "OSM_ABR.h"
 
-void addNode(ABR_Node **tree, OSM_Node nd){
-  ABR_Node *tmpNode;
+void addNode(ABR_Node **tree, unsigned long int key, void* nd){
+	ABR_Node *tmpNode;
 	ABR_Node *tmpTree = *tree;
 
 	ABR_Node *elem = malloc(sizeof(ABR_Node));
-	elem->id = nd.id;
+	elem->id = key;
   elem->nd = nd;
 	elem->left = NULL;
 	elem->right = NULL;
@@ -15,7 +15,7 @@ void addNode(ABR_Node **tree, OSM_Node nd){
 	if(tmpTree)
 		do{
 		  tmpNode = tmpTree;
-		  if(nd.id > tmpTree->id ){
+		  if(key > tmpTree->id ){
 	      tmpTree = tmpTree->right;
 	      if(!tmpTree) tmpNode->right = elem;
 		  }
@@ -27,9 +27,9 @@ void addNode(ABR_Node **tree, OSM_Node nd){
 	else  *tree = elem;
 }
 
-OSM_Node* searchNode(ABR_Node *tree, int id){
+void* searchNode(ABR_Node *tree, unsigned long int id){
   while(tree){
-    if(id == tree->id) return &tree->nd;
+    if(id == tree->id) return tree->nd;
     if(id > tree->id ) tree = tree->right;
     else tree = tree->left;
   }
@@ -39,7 +39,7 @@ OSM_Node* searchNode(ABR_Node *tree, int id){
 void printTree(ABR_Node *tree){
   if(!tree) return;
   if(tree->left)  printTree(tree->left);
-  printf("Cle = %d\n", tree->id);
+  printf("Cle = %lu\n", tree->id);
   if(tree->right) printTree(tree->right);
 }
 

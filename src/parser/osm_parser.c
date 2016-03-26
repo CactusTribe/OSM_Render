@@ -180,7 +180,7 @@ static int _getDataSet_lenght(osmParserDataSetPtr data)
 
 #define ATTR_BINDING_LONG_INT(field,attrname) \
 	if(xmlStrEqual( xmlCharStrdup(attrname) , attr->name)) \
-		field= strtoul ( (char *) value , NULL, 0);
+		field= strtoul ( (char *) value , NULL, 10);
 
 #define ATTR_BINDING_BOOL(field,attrname) \
 	if(xmlStrEqual( xmlCharStrdup(attrname) , attr->name)) \
@@ -191,20 +191,6 @@ static int _getDataSet_lenght(osmParserDataSetPtr data)
 		*field= xmlStrdup(value);
 
 
-static long int _bind_Ways_Nodes(xmlNodePtr node)
-{
-	long int osm_tag;
-	xmlAttr* attr= node->properties;
-	int index=0;
-	while(attr && attr->name && attr->children)
-	{
-		xmlChar* value= xmlNodeListGetString(node->doc, attr->children, 1);
-		ATTR_BINDING_LONG_INT(osm_tag, "ref")
-		xmlFree(value);
-		attr= attr->next;
-	}
-	return osm_tag;
-}
 
 static OSM_Tag _bind_OSM_Tag(xmlNodePtr node)
 {
@@ -222,17 +208,33 @@ static OSM_Tag _bind_OSM_Tag(xmlNodePtr node)
 	return osm_tag;
 }
 
-static long int* _getWaysNodesList(xmlNodePtr data)
+static OSM_Node* _bind_Ways_Nodes(OSM_Data* osm_data, xmlNodePtr node)
 {
-	long int* 		tag_list= (OSM_Tag*) calloc( _countChildrenTag(data), sizeof(long int*));
-	long int* 		currentTag = tag_list;
+	long int id_node;
+	xmlAttr* attr= node->properties;
+	int index=0;
+	while(attr && attr->name && attr->children)
+	{
+		xmlChar* value= xmlNodeListGetString(node->doc, attr->children, 1);
+		ATTR_BINDING_LONG_INT(id_node, "ref")
+		xmlFree(value);
+		attr= attr->next;
+	}
+	return (OSM_Node*) searchNode(osm_data->abr_node, id_node);
+}
+
+static OSM_Node** _getWaysNodesList(OSM_Data* osm_data, xmlNodePtr data)
+{
+
+	OSM_Node** 		tag_list= (OSM_Node*) calloc( _countChildrenNode(data), sizeof(OSM_Node**));
+	OSM_Node** 		currentTag = tag_list;
 	xmlNodePtr 	currentNode= NULL;
 
 	for(currentNode = data->children; currentNode; currentNode=currentNode->next)
 		if(currentNode->type == XML_ELEMENT_NODE) 
 			if(xmlStrEqual(currentNode->name, xmlCharStrdup("nd")))
 			{
-				*currentTag= _bind_Ways_Nodes(currentNode);
+				*currentTag= _bind_Ways_Nodes(osm_data, currentNode);
 				currentTag++;
 			}
 	return tag_list;
@@ -241,7 +243,7 @@ static long int* _getWaysNodesList(xmlNodePtr data)
 
 static OSM_Tag* _getTagsList(xmlNodePtr data)
 {
-	OSM_Tag* 		tag_list= (OSM_Tag*) calloc( _countChildrenTag(data), sizeof(OSM_Tag*));
+	OSM_Tag* 		tag_list= (OSM_Tag*) calloc( _countChildrenTag(data), sizeof(OSM_Tag));
 	OSM_Tag* 		currentTag = tag_list;
 	xmlNodePtr 	currentNode= NULL;
 
@@ -293,7 +295,7 @@ OSM_Bounds _bind_OSM_Bounds(xmlNodePtr node)
 	return bounds;
 }
 
-OSM_Way _bind_OSM_Way(xmlNodePtr node)
+OSM_Way _bind_OSM_Way(OSM_Data* osm_data, xmlNodePtr node)
 {
 	OSM_Way osm_way;
 	xmlAttr* attr= node->properties;
@@ -306,7 +308,7 @@ OSM_Way _bind_OSM_Way(xmlNodePtr node)
 		attr= attr->next;
 	}
 	osm_way.nb_node = _countChildrenNode(node);
-	osm_way.nodes= 		_getWaysNodesList(node);
+	osm_way.nodes= 		_getWaysNodesList(osm_data, node);
 	osm_way.nb_tag = 	_countChildrenTag(node);
 	osm_way.tags= 		_getTagsList(node);
 	return osm_way;
@@ -326,7 +328,7 @@ static OSM_Node* _getNodesList(osmParserDataSetPtr data)
 	return nodesList;
 }
 
-static OSM_Way* _getWaysList(osmParserDataSetPtr data)
+static OSM_Way* _getWaysList(OSM_Data* osm_data, osmParserDataSetPtr data)
 {
 	int 			i;
 	OSM_Way* list= calloc( _getDataSet_lenght(data), sizeof(OSM_Way));
@@ -335,7 +337,7 @@ static OSM_Way* _getWaysList(osmParserDataSetPtr data)
 
 	for(i=0; i < _getDataSet_lenght(data); i++, current++)
 	{
-		*current= _bind_OSM_Way(  _getXmlNodeByIndex(data, i) );
+		*current= _bind_OSM_Way(osm_data,  _getXmlNodeByIndex(data, i) );
 	}
 	return list;
 }
@@ -368,13 +370,23 @@ parser_error_t getOSM_data(const char* filename, OSM_Data** dataOut)
 	data->nodes = _getNodesList(osmDataSet);
 	_freeDataSet(osmDataSet);
 
+	// === Nodes ABR === 
+	for(int i= 0; i < data->nb_node; i++){
+		addNode(&data->abr_node, data->nodes[i].id, &data->nodes[i]);
+	}
+
 	// === Ways ===
 	error=_getOSM_Way(osmFile, &osmDataSet);
 	if(error != PARSER_SUCESS)
 		return error;
 	data->nb_way = _getDataSet_lenght(osmDataSet);
-	data->ways = _getWaysList(osmDataSet);
+	data->ways = _getWaysList(data, osmDataSet);
 	_freeDataSet(osmDataSet);
+
+	// === Nodes ABR === 
+	for(int i= 0; i < data->nb_way; i++){
+		addNode(&data->abr_way, data->ways[i].id, &data->ways[i]);
+	}
 
 	*dataOut = data;
 

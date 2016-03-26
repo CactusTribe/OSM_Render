@@ -57,4 +57,3 @@ void printOSM_Way(const OSM_Way way){
 void printOSM_Data(const OSM_Data data){
 	fprintOSM_Data(stdout, data);
 }
-

@@ -35,14 +35,6 @@ int main(int argc, char** argv){
     OSM_Data* osmData;
     getOSM_data("./src/model/test3.osm", &osmData);
 
-    // ################# PARSER ##################
-
-    ABR_Node *abr_osm_node = NULL;
-
-    for(int i= 0; i < osmData->nb_node; i++){
-        addNode(&abr_osm_node, osmData->nodes[i]);
-    }
-
     // ################# AFFICHAGE ##################
 
     /* Initialisation */
@@ -50,12 +42,12 @@ int main(int argc, char** argv){
     /* Création de la fenêtre */
     CreateWindow(SCREEN_W, SCREEN_H);
     /* Rendu OSM */
-    OSM_Rendering(pWindow, SCREEN_W, SCREEN_H, osmData, abr_osm_node);
+    OSM_Rendering(pWindow, SCREEN_W, SCREEN_H, osmData);
     /* Boucle d'évenements */
     EventsLoop();
     /* Fermeture de la SDL */
     Quit_SDL();
-    clearTree(&abr_osm_node);
+
     exit(0);
 }
 
