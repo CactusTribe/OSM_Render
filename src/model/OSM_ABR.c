@@ -47,7 +47,7 @@ void printTree(ABR_Node *tree){
 void printReverseTree(ABR_Node *tree){
   if(!tree) return;
   if(tree->right) printReverseTree(tree->right);
-  printf("Cle = %d\n", tree->id);
+  printf("Cle = %lu\n", tree->id);
   if(tree->left)  printReverseTree(tree->left);
 }
 

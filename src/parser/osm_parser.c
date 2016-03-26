@@ -28,8 +28,6 @@ typedef osmParserFile* osmParserFilePtr;
 typedef struct osmParserDataSet osmParserDataSet;
 typedef osmParserDataSet* osmParserDataSetPtr;
 
-typedef  osmParserDataPtr;
-
 
 static parser_error_t _open_OSM_ParserFile(const char* filename, osmParserFilePtr* fileOut)
 {
@@ -148,13 +146,13 @@ static parser_error_t _getOSM_Way(osmParserFilePtr file, osmParserDataSetPtr* da
 	return(PARSER_SUCESS);
 }
 
-static parser_error_t _getOSM_Relation(osmParserFilePtr file, osmParserDataSetPtr* dataOut)
+/*static parser_error_t _getOSM_Relation(osmParserFilePtr file, osmParserDataSetPtr* dataOut)
 {
   parser_error_t error= _execute_xpath( file, (xmlChar*)"/osm/relation",  dataOut);
 	if(error != PARSER_SUCESS)
 		return error;
 	return(PARSER_SUCESS);
-}
+}*/
 
 static int _getDataSet_lenght(osmParserDataSetPtr data)
 {
@@ -188,7 +186,7 @@ static int _getDataSet_lenght(osmParserDataSetPtr data)
 
 #define ATTR_BINDING_STRING(field, attrname) \
 	if(xmlStrEqual( xmlCharStrdup(attrname) , attr->name)) \
-		*field= xmlStrdup(value);
+		*field= (char *) xmlStrdup(value);
 
 
 
@@ -196,7 +194,6 @@ static OSM_Tag _bind_OSM_Tag(xmlNodePtr node)
 {
 	OSM_Tag osm_tag;
 	xmlAttr* attr= node->properties;
-	int index=0;
 	while(attr && attr->name && attr->children)
 	{
 		xmlChar* value= xmlNodeListGetString(node->doc, attr->children, 1);
@@ -212,7 +209,6 @@ static OSM_Node* _bind_Ways_Nodes(OSM_Data* osm_data, xmlNodePtr node)
 {
 	long int id_node;
 	xmlAttr* attr= node->properties;
-	int index=0;
 	while(attr && attr->name && attr->children)
 	{
 		xmlChar* value= xmlNodeListGetString(node->doc, attr->children, 1);
@@ -226,7 +222,7 @@ static OSM_Node* _bind_Ways_Nodes(OSM_Data* osm_data, xmlNodePtr node)
 static OSM_Node** _getWaysNodesList(OSM_Data* osm_data, xmlNodePtr data)
 {
 
-	OSM_Node** 		tag_list= (OSM_Node*) calloc( _countChildrenNode(data), sizeof(OSM_Node**));
+	OSM_Node** 		tag_list= (OSM_Node**) calloc( _countChildrenNode(data), sizeof(OSM_Node**));
 	OSM_Node** 		currentTag = tag_list;
 	xmlNodePtr 	currentNode= NULL;
 
@@ -262,7 +258,6 @@ OSM_Node _bind_OSM_Node(xmlNodePtr node)
 {
 	OSM_Node osm_node;
 	xmlAttr* attr= node->properties;
-	int index=0;
 	while(attr && attr->name && attr->children)
 	{
 		xmlChar* value= xmlNodeListGetString(node->doc, attr->children, 1);
@@ -299,7 +294,6 @@ OSM_Way _bind_OSM_Way(OSM_Data* osm_data, xmlNodePtr node)
 {
 	OSM_Way osm_way;
 	xmlAttr* attr= node->properties;
-	int index=0;
 	while(attr && attr->name && attr->children)
 	{
 		xmlChar* value= xmlNodeListGetString(node->doc, attr->children, 1);
@@ -316,12 +310,11 @@ OSM_Way _bind_OSM_Way(OSM_Data* osm_data, xmlNodePtr node)
 
 static OSM_Node* _getNodesList(osmParserDataSetPtr data)
 {
-	int 			i;
 	OSM_Node* nodesList= calloc( _getDataSet_lenght(data), sizeof(OSM_Node));
 
 	OSM_Node*  current = nodesList;
 
-	for(i=0; i < _getDataSet_lenght(data); i++, current++)
+	for(int i=0; i < _getDataSet_lenght(data); i++, current++)
 	{
 		*current= _bind_OSM_Node(  _getXmlNodeByIndex(data, i) );
 	}
@@ -347,7 +340,6 @@ parser_error_t getOSM_data(const char* filename, OSM_Data** dataOut)
 	osmParserFile* 		osmFile;
 	osmParserDataSet* osmDataSet;
 	parser_error_t 		error;
-	int 							i;
 
 	OSM_Data* data= (OSM_Data*) malloc(sizeof(OSM_Data));
 	error= _open_OSM_ParserFile(filename, &osmFile);
