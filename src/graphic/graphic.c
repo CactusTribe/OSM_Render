@@ -159,8 +159,8 @@ void draw_openedWay(SDL_Renderer *ren, OSM_Way *way){
     x_suiv = ((longitude - bounds->minlon) / interval_X) * SCREEN_W;
     y_suiv = ((latitude - bounds->minlat) / interval_Y) * SCREEN_H;  
 
-  	thickLineRGBA(ren, x, y, 
- 			x_suiv, y_suiv, weigth_IN, rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
+  	thickLineRGBA(ren, x, SCREEN_H - y, 
+ 			x_suiv, SCREEN_H - y_suiv, weigth_IN, rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
   }
 
 
@@ -179,8 +179,8 @@ void draw_openedWay(SDL_Renderer *ren, OSM_Way *way){
     x_suiv = ((longitude - bounds->minlon) / interval_X) * SCREEN_W;
     y_suiv = ((latitude - bounds->minlat) / interval_Y) * SCREEN_H;  
 
-    thickLineRGBA(ren, x, y, 
-      x_suiv, y_suiv, (weigth_IN - weigth_OUT) , rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
+    thickLineRGBA(ren, x, SCREEN_H - y, 
+      x_suiv, SCREEN_H - y_suiv, (weigth_IN - weigth_OUT) , rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
   }
 }
 
@@ -211,7 +211,7 @@ void draw_closedWay(SDL_Renderer *ren, OSM_Way *way){
 
       if(nd != 0){
         vx[i] = ((nd->lon - bounds->minlon) / interval_X) * SCREEN_W;
-        vy[i] = ((nd->lat - bounds->minlat) / interval_Y) * SCREEN_H;  
+        vy[i] = SCREEN_H - (((nd->lat - bounds->minlat) / interval_Y) * SCREEN_H);  
       }
     }
 	}
