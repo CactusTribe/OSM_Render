@@ -71,18 +71,21 @@ typedef struct{
 	OSM_Relation* relations;
 }	OSM_Data;
 
-typedef OSM_Data* OSM_DataPtr;
-
 extern void fprintOSM_Bounds(FILE* stream, const OSM_Bounds bounds);
 extern void fprintOSM_Node(FILE* stream, const OSM_Node node);
 extern void fprintOSM_Tag(FILE* stream, const OSM_Tag tag);
 extern void fprintOSM_Way(FILE* stream, const OSM_Way way);
 extern void fprintOSM_Data(FILE* stream, const OSM_Data data);
+extern void fprintOSM_Member(FILE* stream, const OSM_Member way);
+extern void fprintOSM_Relation(FILE* stream, const OSM_Relation data);
+
 
 extern void printOSM_Bounds(const OSM_Bounds bounds);
 extern void printOSM_Node(const OSM_Node node);
 extern void printOSM_Tag(const OSM_Tag tag);
 extern void printOSM_Way(const OSM_Way way);
 extern void printOSM_Data(const OSM_Data data);
+extern void printOSM_Member(const OSM_Member member);
+extern void printOSM_Relation(const OSM_Relation relation);
 
 #endif /* _OSM_TYPES_H_ */

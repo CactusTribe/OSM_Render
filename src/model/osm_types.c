@@ -32,6 +32,32 @@ void fprintOSM_Way(FILE* stream, const OSM_Way way){
 	fprintf(stream, "\tnb_node: %d\n", way.nb_node);
 }
 
+void fprintOSM_Member(FILE* stream, const OSM_Member member){
+	fprintf(stream, "OSM_Tag:\n");
+	switch(member.type)
+	{
+		case OSM_MEMBER_NODE:
+			fprintf(stream, "\ttype: OSM_Node\n\tref_id: %lu\n", ((OSM_Node*)member.ref)->id );
+			break;
+		case OSM_MEMBER_WAY:
+			fprintf(stream, "\ttype: OSM_Way\n\tref_id: %lu\n", ((OSM_Way*)member.ref)->id );
+			break;
+		default:
+			fprintf(stream, "\ttype: undefined\n\tref_id: undefined\n");
+			break;
+	}
+	fprintf(stream, "\trole: %s\n", member.role );
+}
+
+void fprintOSM_Relation(FILE* stream, const OSM_Relation relation){
+	fprintf(stream, "OSM_Relation:\n");
+	fprintf(stream, "\tid: %lu\n", relation.id);
+	fprintf(stream, "\tvisible: %d\n", relation.visible);
+	fprintf(stream, "\nnb_member: %d\n", relation.nb_member);
+	fprintf(stream, "\tnb_tag: %d\n", relation.nb_tag);
+}
+
+
 void fprintOSM_Data(FILE* stream, const OSM_Data data){
 	fprintf(stream, "OSM_Data:\n");
 	fprintf(stream, "\tnb_node: %d\n", data.nb_node);
@@ -52,6 +78,15 @@ void printOSM_Tag(const OSM_Tag tag){
 
 void printOSM_Way(const OSM_Way way){
 	fprintOSM_Way(stdout, way);
+}
+
+void printOSM_Member(const OSM_Member member) {
+	fprintOSM_Member(stdout, member);
+}
+
+
+void printOSM_Relation(const OSM_Relation relation) {
+	fprintOSM_Relation(stdout, relation);
 }
 
 void printOSM_Data(const OSM_Data data){
