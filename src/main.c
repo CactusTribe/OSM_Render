@@ -32,25 +32,38 @@ int terminer = 0;
 
 int main(int argc, char** argv){
 
-    OSM_Data* osmData;
-    getOSM_data("./src/model/test2.osm", &osmData);
+  OSM_Data* osmData;
+  getOSM_data("./src/model/test2.osm", &osmData);
 
-    // ################# AFFICHAGE ##################
 
-    /* Initialisation */
-    Init_SDL();
-    /* Création de la fenêtre */
-    CreateWindow(SCREEN_W, SCREEN_H);
-    /* Rendu OSM */
-    OSM_Rendering(pWindow, SCREEN_W, SCREEN_H, osmData);
-    /* Boucle d'évenements */
-    EventsLoop();
-    /* Fermeture de la SDL */
-    Quit_SDL();
-		
+	for(int i=0; i< osmData->nb_relation; i++)
+	{
+printf("\n\n\n");
+			printOSM_Relation(osmData->relations[i]);
+
+
+		for(int j=0; j< osmData->relations[i].nb_member; j++) 
+		{
+			printOSM_Member(osmData->relations[i].members[j]);
+		}
+	}
+
+  // ################# AFFICHAGE ##################
+
+  /* Initialisation */
+  Init_SDL();
+  /* Création de la fenêtre */
+  CreateWindow(SCREEN_W, SCREEN_H);
+	/* Rendu OSM */
+	OSM_Rendering(pWindow, SCREEN_W, SCREEN_H, osmData);
+	/* Boucle d'évenements */
+	EventsLoop();
+	/* Fermeture de la SDL */
+	Quit_SDL();
+	/* Free data */	
 	freeOSM_data(osmData);
 
-    exit(0);
+	exit(0);
 }
 
 void Init_SDL(){

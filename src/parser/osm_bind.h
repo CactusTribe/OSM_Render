@@ -22,9 +22,9 @@ OSM_Relation*	getRelationList		(OSM_Data* osm_data, osmParserDataSetPtr data);
 
 
 
-OSM_Node**		getRefNodeList		(OSM_Data* osm_data, xmlNodePtr data);
-
-OSM_Tag* 			getTagList				(xmlNodePtr data);
+OSM_Node**		getRefNodeList		(OSM_Data* osm_data, xmlNodePtr node);
+OSM_Member*  	getMemberList			(OSM_Data* osm_data, xmlNodePtr node);
+OSM_Tag* 			getTagList				(xmlNodePtr node);
 
 
 #endif /* _OSM_BIND_H_ */

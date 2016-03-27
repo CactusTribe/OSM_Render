@@ -33,18 +33,30 @@ void fprintOSM_Way(FILE* stream, const OSM_Way way){
 }
 
 void fprintOSM_Member(FILE* stream, const OSM_Member member){
-	fprintf(stream, "OSM_Tag:\n");
+	fprintf(stream, "OSM_Member:\n");
 	switch(member.type)
 	{
-		case OSM_MEMBER_NODE:
-			fprintf(stream, "\ttype: OSM_Node\n\tref_id: %lu\n", ((OSM_Node*)member.ref)->id );
-			break;
-		case OSM_MEMBER_WAY:
-			fprintf(stream, "\ttype: OSM_Way\n\tref_id: %lu\n", ((OSM_Way*)member.ref)->id );
-			break;
+		case OSM_MEMBER_NODE: 
+			{ // new scope
+				OSM_Node* node = (OSM_Node*) member.ref;
+				if(node != NULL)
+					fprintf(stream, "\ttype: OSM_Node\n\tref_id: %lu\n", node->id );
+				else
+					fprintf(stream, "\ttype: OSM_Node\n\tref_id: NULL\n");
+			}
+		break;
+		case OSM_MEMBER_WAY: 
+			{ // new scope
+				OSM_Way* way = (OSM_Way*) member.ref;
+				if(way != NULL)
+					fprintf(stream, "\ttype: OSM_Way\n\tref_id: %lu\n", way->id );
+				else
+					fprintf(stream, "\ttype: OSM_Way\n\tref_id: NULL\n");
+			} 
+		break;
 		default:
 			fprintf(stream, "\ttype: undefined\n\tref_id: undefined\n");
-			break;
+		break;
 	}
 	fprintf(stream, "\trole: %s\n", member.role );
 }
@@ -53,7 +65,7 @@ void fprintOSM_Relation(FILE* stream, const OSM_Relation relation){
 	fprintf(stream, "OSM_Relation:\n");
 	fprintf(stream, "\tid: %lu\n", relation.id);
 	fprintf(stream, "\tvisible: %d\n", relation.visible);
-	fprintf(stream, "\nnb_member: %d\n", relation.nb_member);
+	fprintf(stream, "\tnb_member: %d\n", relation.nb_member);
 	fprintf(stream, "\tnb_tag: %d\n", relation.nb_tag);
 }
 
