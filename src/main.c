@@ -33,7 +33,7 @@ int terminer = 0;
 int main(int argc, char** argv){
 
     OSM_Data* osmData;
-    getOSM_data("./src/model/test3.osm", &osmData);
+    getOSM_data("./src/model/test2.osm", &osmData);
 
     // ################# AFFICHAGE ##################
 
@@ -48,7 +48,7 @@ int main(int argc, char** argv){
     /* Fermeture de la SDL */
     Quit_SDL();
 		
-		freeOSM_data(osmData);
+	freeOSM_data(osmData);
 
     exit(0);
 }

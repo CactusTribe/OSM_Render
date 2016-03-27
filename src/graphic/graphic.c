@@ -6,7 +6,8 @@
 
 SDL_Renderer *ren = NULL;
 OSM_Bounds *bounds = NULL;
-ABR_Node *abr_osm_node = NULL;
+ABR_Node *abr_node = NULL;
+ABR_Node *abr_way = NULL;
 
 STYLE_ENTRY _dico[DICO_SIZE] = {};
 int NB_STYLES = 0;
@@ -167,25 +168,31 @@ void draw_openedWay(SDL_Renderer *ren, OSM_Way *way){
 
 /* Affichage d'une way fermée */
 void draw_closedWay(SDL_Renderer *ren, OSM_Way *way){
-	//char *key = way->tags[0].k;
-	//char *value = way->tags[0].v;
 
-	//STYLE_ENTRY *style = getStyleOf(key, value);
-	//RGBA_COLOR *rgb_IN = &style->color_IN;
+  char *key = "default";
+  char *value = "default";
+
+  if(way->nb_tag > 0){
+    key = way->tags[0].k;
+    value = way->tags[0].v;
+  }
+
+	STYLE_ENTRY *style = getStyleOf(key, value);
+	RGBA_COLOR *rgb_IN = &style->color_IN;
 
 	int nb_nodes = way->nb_node-1;
-	//short vx[nb_nodes];
-	//short vy[nb_nodes];
+	short vx[nb_nodes];
+	short vy[nb_nodes];
 
 	for(int i=0; i < nb_nodes; i++){
     if(way->nodes[i]->id != 0){
-      OSM_Node *nd = searchNode(abr_osm_node, way->nodes[i]->id);
+      OSM_Node *nd = searchNode(abr_node, way->nodes[i]->id);
       if(nd != 0){
         //printf("%ld\n", nd->id);
         //printf("lon %f lat %f\n", nd->lon, nd->lat);
 
-        //vx[i] = ((nd->lon - bounds->minlon) / interval_X) * SCREEN_W;
-        //vy[i] = ((nd->lat - bounds->minlat) / interval_Y) * SCREEN_H;  
+        vx[i] = ((nd->lon - bounds->minlon) / interval_X) * SCREEN_W;
+        vy[i] = ((nd->lat - bounds->minlat) / interval_Y) * SCREEN_H;  
       }
     }
 
@@ -194,7 +201,7 @@ void draw_closedWay(SDL_Renderer *ren, OSM_Way *way){
     //printf("vx(%hd) vy(%hd)\n", vx[i], vy[i]);
 	}
 
-  //filledPolygonRGBA(ren, vx, vy, nb_nodes, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
+  filledPolygonRGBA(ren, vx, vy, nb_nodes, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
 }
 
 
@@ -234,7 +241,8 @@ void drawOSM_ABR(ABR_Node *tree){
 
 void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data){
 
-  abr_osm_node = data->abr_node;
+  abr_node = data->abr_node;
+  abr_way = data->abr_way;
 	bounds = data->bounds;
   interval_Y = bounds->maxlat - bounds->minlat;
   interval_X = bounds->maxlon - bounds->minlon;
@@ -251,9 +259,6 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data){
 
 	for(int i=0; i< data->nb_way; i++)
 		drawWay(ren, &data->ways[i]);
-
-	for(int i=0; i< data->nb_node; i++)
-		drawNode(ren, &data->nodes[i]);
 
   /*
   for(int i= 0; i < data->nb_way; i++){
