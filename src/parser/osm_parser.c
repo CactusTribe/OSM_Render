@@ -1,4 +1,5 @@
 #include "osm_parser.h"
+#include "osm_bind.h"
 #include "../model/osm_types.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -11,25 +12,7 @@
 #include <libxml/xpath.h>
 #include <libxml/xpathInternals.h>
 
-
-struct osmParserFile {
-	xmlDocPtr	doc;
-};
-
-struct osmParserDataSet {
-	xmlXPathContextPtr	xpathCtx; 
-	xmlXPathObjectPtr		xpathObj;
-	xmlNodePtr					current_node;
-};
-
-typedef struct osmParserFile osmParserFile;
-typedef osmParserFile* osmParserFilePtr;
-
-typedef struct osmParserDataSet osmParserDataSet;
-typedef osmParserDataSet* osmParserDataSetPtr;
-
-
-static parser_error_t _open_OSM_ParserFile(const char* filename, osmParserFilePtr* fileOut)
+parser_error_t open_OSM_ParserFile(const char* filename, osmParserFilePtr* fileOut)
 {
 	osmParserFilePtr	file	= NULL;
 	xmlDocPtr					doc		= NULL;
@@ -50,13 +33,13 @@ static parser_error_t _open_OSM_ParserFile(const char* filename, osmParserFilePt
 	return(PARSER_SUCESS);
 }
 
-static void _close_OSM_ParserFile(osmParserFilePtr file)
+void close_OSM_ParserFile(osmParserFilePtr file)
 {
 	xmlFreeDoc(file->doc); 
 	free(file);
 }
 
-static void _freeDataSet(osmParserDataSetPtr data)
+void freeDataSet(osmParserDataSetPtr data)
 {
 	assert(data);
 
@@ -69,7 +52,7 @@ static void _freeDataSet(osmParserDataSetPtr data)
 }
 
 
-static parser_error_t _execute_xpath(osmParserFilePtr file, const xmlChar* xpathExpr, osmParserDataSetPtr* dataOut)
+parser_error_t execute_xpath(osmParserFilePtr file, const xmlChar* xpathExpr, osmParserDataSetPtr* dataOut)
 {
 	osmParserDataSetPtr	data	= NULL;
 	data= (osmParserDataSetPtr) malloc(sizeof(struct osmParserDataSet));
@@ -88,7 +71,7 @@ static parser_error_t _execute_xpath(osmParserFilePtr file, const xmlChar* xpath
 	return PARSER_SUCESS;
 }
 
-static int _countChildrenElementByName(xmlNodePtr node, const char* name)
+int countChildrenElementByName(xmlNodePtr node, const char* name)
 {
 	xmlNodePtr currentNode= NULL;
 	int count = 0;
@@ -99,240 +82,62 @@ static int _countChildrenElementByName(xmlNodePtr node, const char* name)
 	return count;
 }
 
-static int _countChildrenTag(xmlNodePtr node)
+int countChildrenTag(xmlNodePtr node)
 {
-	return _countChildrenElementByName(node, "tag");
+	return countChildrenElementByName(node, "tag");
 }
 
-static int _countChildrenNode(xmlNodePtr node)
+int countChildrenNode(xmlNodePtr node)
 {
-	return _countChildrenElementByName(node, "nd");
+	return countChildrenElementByName(node, "nd");
 }
 
-static xmlNodePtr _getXmlNodeByIndex( osmParserDataSetPtr osmDataSet, int index)
+int countChildrenMember(xmlNodePtr node)
+{
+	return countChildrenElementByName(node, "member");
+}
+
+xmlNodePtr getXmlNodeByIndex( osmParserDataSetPtr osmDataSet, int index)
 {
 	return osmDataSet->xpathObj->nodesetval->nodeTab[index];
 }
-/*
-osmParserDataPtr getDataSet_end( osmParserDataSetPtr osmDataSet)
+
+parser_error_t getOSM_Bounds(osmParserFilePtr file, osmParserDataSetPtr* dataOut)
 {
-	return getDataSet_element( osmDataSet, getDataSet_lenght(osmDataSet)-1 );
-}
-*/
-
-
-
-static parser_error_t _getOSM_Bounds(osmParserFilePtr file, osmParserDataSetPtr* dataOut)
-{
-  parser_error_t error= _execute_xpath( file, (xmlChar*)"/osm/bounds",  dataOut);
+  parser_error_t error= execute_xpath( file, (xmlChar*)"/osm/bounds",  dataOut);
 	if(error != PARSER_SUCESS)
 		return error;
 	return(PARSER_SUCESS);
 }
 
-static parser_error_t _getOSM_Node(osmParserFilePtr file, osmParserDataSetPtr* dataOut)
+parser_error_t getOSM_Node(osmParserFilePtr file, osmParserDataSetPtr* dataOut)
 {
-  parser_error_t error= _execute_xpath( file, (xmlChar*)"/osm/node",  dataOut);
+  parser_error_t error= execute_xpath( file, (xmlChar*)"/osm/node",  dataOut);
 	if(error != PARSER_SUCESS)
 		return error;
 	return(PARSER_SUCESS);
 }
 
-static parser_error_t _getOSM_Way(osmParserFilePtr file, osmParserDataSetPtr* dataOut)
+parser_error_t getOSM_Way(osmParserFilePtr file, osmParserDataSetPtr* dataOut)
 {
-  parser_error_t error= _execute_xpath( file, (xmlChar*)"/osm/way",  dataOut);
+  parser_error_t error= execute_xpath( file, (xmlChar*)"/osm/way",  dataOut);
 	if(error != PARSER_SUCESS)
 		return error;
 	return(PARSER_SUCESS);
 }
 
-/*static parser_error_t _getOSM_Relation(osmParserFilePtr file, osmParserDataSetPtr* dataOut)
+parser_error_t getOSM_Relation(osmParserFilePtr file, osmParserDataSetPtr* dataOut)
 {
-  parser_error_t error= _execute_xpath( file, (xmlChar*)"/osm/relation",  dataOut);
+  parser_error_t error= execute_xpath( file, (xmlChar*)"/osm/relation",  dataOut);
 	if(error != PARSER_SUCESS)
 		return error;
 	return(PARSER_SUCESS);
-}*/
+}
 
-static int _getDataSet_lenght(osmParserDataSetPtr data)
+int getDataSet_lenght(osmParserDataSetPtr data)
 {
 	xmlNodeSetPtr node_set=  data->xpathObj->nodesetval;
 	return (node_set) ? node_set->nodeNr : 0;
-}
-
-
-
-#define TRUE_STR "true"
-#define TRUE_VAL 1
-#define FALSE_STR "false"
-#define FALSE_VAL 0
-
-
-#define ATTR_BINDING_DOUBLE(field,attrname) \
-	if(xmlStrEqual( xmlCharStrdup(attrname) , attr->name)) \
-		field= atof( (char *) value);
-
-#define ATTR_BINDING_INT(field,attrname) \
-	if(xmlStrEqual( xmlCharStrdup(attrname) , attr->name)) \
-		field= atoi( (char *) value);
-
-#define ATTR_BINDING_LONG_INT(field,attrname) \
-	if(xmlStrEqual( xmlCharStrdup(attrname) , attr->name)) \
-		field= strtoul ( (char *) value , NULL, 10);
-
-#define ATTR_BINDING_BOOL(field,attrname) \
-	if(xmlStrEqual( xmlCharStrdup(attrname) , attr->name)) \
-		field= strcmp(TRUE_STR, (char *) value) ? FALSE_VAL : TRUE_VAL;
-
-#define ATTR_BINDING_STRING(field, attrname) \
-	if(xmlStrEqual( xmlCharStrdup(attrname) , attr->name)) \
-		*field= (char *) xmlStrdup(value);
-
-
-
-static OSM_Tag _bind_OSM_Tag(xmlNodePtr node)
-{
-	OSM_Tag osm_tag;
-	xmlAttr* attr= node->properties;
-	while(attr && attr->name && attr->children)
-	{
-		xmlChar* value= xmlNodeListGetString(node->doc, attr->children, 1);
-		ATTR_BINDING_STRING(&osm_tag.k, "k")
-		ATTR_BINDING_STRING(&osm_tag.v, "v")
-		xmlFree(value);
-		attr= attr->next;
-	}
-	return osm_tag;
-}
-
-static OSM_Node* _bind_Ways_Nodes(OSM_Data* osm_data, xmlNodePtr node)
-{
-	long int id_node;
-	xmlAttr* attr= node->properties;
-	while(attr && attr->name && attr->children)
-	{
-		xmlChar* value= xmlNodeListGetString(node->doc, attr->children, 1);
-		ATTR_BINDING_LONG_INT(id_node, "ref")
-		xmlFree(value);
-		attr= attr->next;
-	}
-	return (OSM_Node*) searchNode(osm_data->abr_node, id_node);
-}
-
-static OSM_Node** _getWaysNodesList(OSM_Data* osm_data, xmlNodePtr data)
-{
-
-	OSM_Node** 		tag_list= (OSM_Node**) calloc( _countChildrenNode(data), sizeof(OSM_Node**));
-	OSM_Node** 		currentTag = tag_list;
-	xmlNodePtr 	currentNode= NULL;
-
-	for(currentNode = data->children; currentNode; currentNode=currentNode->next)
-		if(currentNode->type == XML_ELEMENT_NODE) 
-			if(xmlStrEqual(currentNode->name, xmlCharStrdup("nd")))
-			{
-				*currentTag= _bind_Ways_Nodes(osm_data, currentNode);
-				currentTag++;
-			}
-	return tag_list;
-}
-
-
-static OSM_Tag* _getTagsList(xmlNodePtr data)
-{
-	OSM_Tag* 		tag_list= (OSM_Tag*) calloc( _countChildrenTag(data), sizeof(OSM_Tag));
-	OSM_Tag* 		currentTag = tag_list;
-	xmlNodePtr 	currentNode= NULL;
-
-	for(currentNode = data->children; currentNode; currentNode=currentNode->next)
-		if(currentNode->type == XML_ELEMENT_NODE) 
-			if(xmlStrEqual(currentNode->name, xmlCharStrdup("tag")))
-			{
-				*currentTag= _bind_OSM_Tag(currentNode);
-				currentTag++;
-			}
-	return tag_list;
-}
-
-
-OSM_Node _bind_OSM_Node(xmlNodePtr node)
-{
-	OSM_Node osm_node;
-	xmlAttr* attr= node->properties;
-	while(attr && attr->name && attr->children)
-	{
-		xmlChar* value= xmlNodeListGetString(node->doc, attr->children, 1);
-		ATTR_BINDING_LONG_INT(osm_node.id, "id")
-		ATTR_BINDING_DOUBLE(osm_node.lat, "lat")
-		ATTR_BINDING_DOUBLE(osm_node.lon, "lon")
-		ATTR_BINDING_BOOL(osm_node.visible, "visible")
-		xmlFree(value);
-		attr= attr->next;
-	}
-	osm_node.nb_tag = _countChildrenTag(node);
-	osm_node.tags= _getTagsList(node);
-	return osm_node;
-}
-
-OSM_Bounds _bind_OSM_Bounds(xmlNodePtr node)
-{
-	OSM_Bounds	bounds;
-	xmlAttr* attr= node->properties;
-	while(attr && attr->name && attr->children)
-	{
-		xmlChar* value= xmlNodeListGetString(node->doc, attr->children, 1);
-		ATTR_BINDING_DOUBLE(bounds.minlat, "minlat")
-		ATTR_BINDING_DOUBLE(bounds.minlon, "minlon")
-		ATTR_BINDING_DOUBLE(bounds.maxlat, "maxlat")
-		ATTR_BINDING_DOUBLE(bounds.maxlon, "maxlon")
-		xmlFree(value);
-		attr= attr->next;
-	}
-	return bounds;
-}
-
-OSM_Way _bind_OSM_Way(OSM_Data* osm_data, xmlNodePtr node)
-{
-	OSM_Way osm_way;
-	xmlAttr* attr= node->properties;
-	while(attr && attr->name && attr->children)
-	{
-		xmlChar* value= xmlNodeListGetString(node->doc, attr->children, 1);
-		ATTR_BINDING_LONG_INT(osm_way.id, "id")
-		xmlFree(value);
-		attr= attr->next;
-	}
-	osm_way.nb_node = _countChildrenNode(node);
-	osm_way.nodes= 		_getWaysNodesList(osm_data, node);
-	osm_way.nb_tag = 	_countChildrenTag(node);
-	osm_way.tags= 		_getTagsList(node);
-	return osm_way;
-}
-
-static OSM_Node* _getNodesList(osmParserDataSetPtr data)
-{
-	OSM_Node* nodesList= calloc( _getDataSet_lenght(data), sizeof(OSM_Node));
-
-	OSM_Node*  current = nodesList;
-
-	for(int i=0; i < _getDataSet_lenght(data); i++, current++)
-	{
-		*current= _bind_OSM_Node(  _getXmlNodeByIndex(data, i) );
-	}
-	return nodesList;
-}
-
-static OSM_Way* _getWaysList(OSM_Data* osm_data, osmParserDataSetPtr data)
-{
-	int 			i;
-	OSM_Way* list= calloc( _getDataSet_lenght(data), sizeof(OSM_Way));
-
-	OSM_Way*  current = list;
-
-	for(i=0; i < _getDataSet_lenght(data); i++, current++)
-	{
-		*current= _bind_OSM_Way(osm_data,  _getXmlNodeByIndex(data, i) );
-	}
-	return list;
 }
 
 parser_error_t getOSM_data(const char* filename, OSM_Data** dataOut)
@@ -345,25 +150,25 @@ parser_error_t getOSM_data(const char* filename, OSM_Data** dataOut)
 	data->abr_node = NULL;
 	data->abr_way = NULL;
 
-	error= _open_OSM_ParserFile(filename, &osmFile);
+	error= open_OSM_ParserFile(filename, &osmFile);
 	if(error != PARSER_SUCESS)
 		return error;
 
 	// === Bounds ===
-	error= _getOSM_Bounds(osmFile, &osmDataSet);
+	error= getOSM_Bounds(osmFile, &osmDataSet);
 	if(error != PARSER_SUCESS)
 		return error;
 	data->bounds = malloc( sizeof(OSM_Bounds));
-	*data->bounds =_bind_OSM_Bounds( _getXmlNodeByIndex(osmDataSet, 0));
-	_freeDataSet(osmDataSet);
+	*data->bounds = bind_OSM_Bounds( getXmlNodeByIndex(osmDataSet, 0));
+	freeDataSet(osmDataSet);
 
 	// === Nodes ===
-	error=_getOSM_Node(osmFile, &osmDataSet);
+	error= getOSM_Node(osmFile, &osmDataSet);
 	if(error != PARSER_SUCESS)
 		return error;
-	data->nb_node = _getDataSet_lenght(osmDataSet);
-	data->nodes = _getNodesList(osmDataSet);
-	_freeDataSet(osmDataSet);
+	data->nb_node = getDataSet_lenght(osmDataSet);
+	data->nodes = getNodeList(osmDataSet);
+	freeDataSet(osmDataSet);
 
 	// === Nodes ABR === 
 	for(int i= 0; i < data->nb_node; i++){
@@ -371,21 +176,29 @@ parser_error_t getOSM_data(const char* filename, OSM_Data** dataOut)
 	}
 
 	// === Ways ===
-	error=_getOSM_Way(osmFile, &osmDataSet);
+	error= getOSM_Way(osmFile, &osmDataSet);
 	if(error != PARSER_SUCESS)
 		return error;
-	data->nb_way = _getDataSet_lenght(osmDataSet);
-	data->ways = _getWaysList(data, osmDataSet);
-	_freeDataSet(osmDataSet);
+	data->nb_way = getDataSet_lenght(osmDataSet);
+	data->ways = getWayList(data, osmDataSet);
+	freeDataSet(osmDataSet);
 
-	// === Nodes ABR === 
+	// === Ways ABR === 
 	for(int i= 0; i < data->nb_way; i++){
 		addNode(&data->abr_way, data->ways[i].id, &data->ways[i]);
 	}
-	
+
+	// === Relation ===
+	error= getOSM_Relation(osmFile, &osmDataSet);
+	if(error != PARSER_SUCESS)
+		return error;
+	data->nb_relation = getDataSet_lenght(osmDataSet);
+	data->relations = getRelationList(data, osmDataSet);
+	freeDataSet(osmDataSet);
+
 	*dataOut = data;
 
-	_close_OSM_ParserFile(osmFile);
+	close_OSM_ParserFile(osmFile);
 	return(PARSER_SUCESS);
 }
 
