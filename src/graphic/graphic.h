@@ -19,7 +19,8 @@ typedef struct{
 typedef struct{
 	char *key;
 	char *value;
-	int weigth;
+	int weigth_IN;
+	int weigth_OUT;
 	RGBA_COLOR color_IN;
 	RGBA_COLOR color_OUT;
 } STYLE_ENTRY;
