@@ -34,6 +34,7 @@ void CreateHeapPriority(minHeap *hp, OSM_Data* data);
 
 void drawWay(SDL_Renderer *ren, OSM_Way *way);
 void drawNode(SDL_Renderer *ren, OSM_Node *node);
+void drawRelation(SDL_Renderer *ren, OSM_Relation *rel);
 void drawTexte(SDL_Renderer *ren, int x, int y, int w, int h, 
 	char *font, int size, char *texte, SDL_Color *color);
 void drawOSM_ABR(ABR_Node *tree);

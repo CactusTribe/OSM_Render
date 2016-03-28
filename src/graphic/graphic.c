@@ -9,7 +9,6 @@
 SDL_Renderer *ren = NULL;
 OSM_Bounds *bounds = NULL;
 ABR_Node *abr_node = NULL;
-ABR_Node *abr_way = NULL;
 
 STYLE_ENTRY _dico[DICO_SIZE] = {};
 int NB_STYLES = 0;
@@ -19,8 +18,8 @@ int SCREEN_H = 0;
 double interval_Y = 0;
 double interval_X = 0;
 
-void draw_openedWay(SDL_Renderer *ren, OSM_Way *way);
-void draw_closedWay(SDL_Renderer *ren, OSM_Way *way);
+void draw_openedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style);
+void draw_closedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style);
 
 
 // Retourne le style en fonction de la clé
@@ -104,42 +103,37 @@ void CreateRenderer(SDL_Window *pWindow){
 
 /* Choisie la fonction d'affichage appropriée en fonction de la clé */ 
 void drawWay(SDL_Renderer *ren, OSM_Way *way){
-	
-  if(way->nb_tag > 0){
-    for(int i=0; i< way->nb_tag; i++){
-      char *key = way->tags[i].k;
-      char *value = way->tags[i].v;
+  char *key = "";
+  char *value = "";
+  STYLE_ENTRY *style = NULL;
 
-      if(strcmp(key, "highway") == 0 || strcmp(key, "railway") == 0 || strcmp(key, "waterway") == 0){
-        draw_openedWay(ren, way);
-        break;
-      }
-      else if(strcmp(key, "building") == 0 || strcmp(key, "natural") == 0 || strcmp(key, "landuse") == 0 || strcmp(key, "leisure") == 0){
-        draw_closedWay(ren, way);
-        break;
-      }
-      else if(strcmp(key, "amenity") == 0){
-        if(strcmp(value, "parking") == 0) draw_closedWay(ren, way);
-        break;
-      }
+  if(way->nb_tag > 0){
+    for(int i=0; i < way->nb_tag; i++){
+      key = way->tags[i].k;
+      value = way->tags[i].v;
+      style = getStyleOf(key, value);
+      if(style != NULL) break;
     }
+  }
+	
+  // Si le style existe alors on affiche
+  if(style != NULL){
+    if(strcmp(key, "highway") == 0 || strcmp(key, "railway") == 0 || strcmp(key, "waterway") == 0){
+      draw_openedWay(ren, way, style);
+    }
+    else if(strcmp(key, "building") == 0 || strcmp(key, "natural") == 0 || strcmp(key, "landuse") == 0 || strcmp(key, "leisure") == 0){
+      draw_closedWay(ren, way, style);
+    }
+    else if(strcmp(key, "amenity") == 0){
+      if(strcmp(value, "parking") == 0) 
+        draw_closedWay(ren, way, style);
+    }   
   }
 }
 
 
 /* Affichage d'une way ouverte */
-void draw_openedWay(SDL_Renderer *ren, OSM_Way *way){
-
-  char *key = "";
-  char *value = "";
-
-  if(way->nb_tag > 0){
-    key = way->tags[0].k;
-    value = way->tags[0].v;
-  }
-
-	STYLE_ENTRY *style = getStyleOf(key, value);
-
+void draw_openedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
   if(style != NULL){
 
     int weigth_IN = style->weigth_IN;
@@ -200,21 +194,7 @@ void draw_openedWay(SDL_Renderer *ren, OSM_Way *way){
 
 
 /* Affichage d'une way fermée */
-void draw_closedWay(SDL_Renderer *ren, OSM_Way *way){
-
-  char *key = "";
-  char *value = "";
-  STYLE_ENTRY *style = NULL;
-
-  if(way->nb_tag > 0){
-    for(int i=0; i< way->nb_tag; i++){
-      key = way->tags[i].k;
-      value = way->tags[i].v;
-      //printf("[%s:%s]\n", key, value);
-      style = getStyleOf(key, value);
-      if(style != NULL) break;
-    }
-  }
+void draw_closedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
 
   if(style != NULL){
   	RGBA_COLOR *rgb_IN = &style->color_IN;
@@ -259,6 +239,55 @@ void drawNode(SDL_Renderer *ren, OSM_Node *node){
 	filledCircleRGBA(ren, x, SCREEN_H - y, 2, 50, 50, 50, 255);
 }
 
+void drawRelation(SDL_Renderer *ren, OSM_Relation *rel){
+
+  char *key = "";
+  char *value = "";
+  STYLE_ENTRY *style = NULL;
+  int multipoly = 0;
+
+  if(rel->nb_tag > 0){
+    for(int i=0; i < rel->nb_tag; i++){
+      key = rel->tags[i].k;
+      value = rel->tags[i].v;
+
+      if(style == NULL)
+        style = getStyleOf(key, value);
+
+      if(strcmp(key, "type") == 0 && strcmp(value, "multipolygon") == 0) 
+        multipoly = 1;
+    }
+  }
+
+  if(multipoly == 1){
+    printf("multipoly id = %lu\n", rel->id);
+    if(style != NULL) printf("  [%s:%s]\n", style->key, style->value);
+
+    // Affichage membres OUTER
+    for(int i=0; i < rel->nb_member; i++){
+      if(rel->members[i].ref != NULL){
+        OSM_Way *way = rel->members[i].ref;
+
+        if(strcmp(rel->members[i].role, "outer") == 0){
+          draw_closedWay(ren, way, style);
+        }
+      }
+    }  
+
+    // Affichage membres INNER
+    for(int i=0; i < rel->nb_member; i++){
+      if(rel->members[i].ref != NULL){
+        OSM_Way *way = rel->members[i].ref;
+
+        if(strcmp(rel->members[i].role, "inner") == 0){
+          drawWay(ren, way);
+        }
+      }
+    }  
+  }
+
+}
+
 void drawTexte(SDL_Renderer *ren, int x, int y, int w, int h, char *font, int size, char *texte, SDL_Color *color){
     TTF_Font* font_ttf = TTF_OpenFont(font, size);
 
@@ -286,7 +315,6 @@ void drawOSM_ABR(ABR_Node *tree){
 void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data){
 
   abr_node = data->abr_node;
-  abr_way = data->abr_way;
 	bounds = data->bounds;
   interval_Y = bounds->maxlat - bounds->minlat;
   interval_X = bounds->maxlon - bounds->minlon;
@@ -304,12 +332,18 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data){
   minHeap priority_heap = initMinHeap(data->nb_way);
   CreateHeapPriority(&priority_heap, data);
 
+
   // Affichage des ways en fonction de leur priorité
   for(int i=0; i<data->nb_way; i++){
     OSM_Way* way = getHead(&priority_heap);
     drawWay(ren, way);
     deleteNode(&priority_heap);
   }
+
+
+  // Affichage des relations
+  for(int i=0; i < data->nb_relation; i++)
+    drawRelation(ren, &data->relations[i]);
 
   // Affichage texte ------------------------------
   //SDL_Color black = {0, 0, 0}; 
@@ -337,10 +371,10 @@ void CreateHeapPriority(minHeap *hp, OSM_Data* data){
         STYLE_ENTRY *style = getStyleOf(tag, value);
 
         if(style != NULL){
+          //printf("[%s:%s]\n", tag, value);
           priorite = style->priority;
           break;
         }
-        //printf("[%s:%s]\n", tag, value);
       }
     }
 
