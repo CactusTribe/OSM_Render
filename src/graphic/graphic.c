@@ -108,6 +108,7 @@ void drawWay(SDL_Renderer *ren, OSM_Way *way){
   if(way->nb_tag > 0){
     for(int i=0; i< way->nb_tag; i++){
       char *key = way->tags[i].k;
+      char *value = way->tags[i].v;
 
       if(strcmp(key, "highway") == 0 || strcmp(key, "railway") == 0 || strcmp(key, "waterway") == 0){
         draw_openedWay(ren, way);
@@ -115,6 +116,10 @@ void drawWay(SDL_Renderer *ren, OSM_Way *way){
       }
       else if(strcmp(key, "building") == 0 || strcmp(key, "natural") == 0 || strcmp(key, "landuse") == 0 || strcmp(key, "leisure") == 0){
         draw_closedWay(ren, way);
+        break;
+      }
+      else if(strcmp(key, "amenity") == 0){
+        if(strcmp(value, "parking") == 0) draw_closedWay(ren, way);
         break;
       }
     }
@@ -335,8 +340,8 @@ void CreateHeapPriority(minHeap *hp, OSM_Data* data){
           priorite = style->priority;
           break;
         }
+        //printf("[%s:%s]\n", tag, value);
       }
-      //printf("[%s:%s]\n", tag, value);
     }
 
     insertNode(hp, priorite, &data->ways[i]);

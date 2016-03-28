@@ -42,3 +42,4 @@ highway tertiary 15 5 255 255 255 174 174 174
 highway secondary 15 5 243 254 181 117 144 0 
 highway primary 15 3 254 216 155 176 124 0 
 natural water 1 0 136 189 214 136 189 214
+amenity parking 1 0 255 255 193 220 210 100
