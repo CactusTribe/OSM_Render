@@ -24,6 +24,7 @@ typedef struct{
 	int weigth_OUT;
 	RGBA_COLOR color_IN;
 	RGBA_COLOR color_OUT;
+	int priority;
 } STYLE_ENTRY;
 
 void openStyleSheet(char *file);

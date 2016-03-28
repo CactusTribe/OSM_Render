@@ -19,7 +19,7 @@
 #include "model/OSM_ABR.h"
 
 #define SCREEN_W 800
-#define SCREEN_H 600
+#define SCREEN_H 500
 
 void Init_SDL();
 void CreateWindow(int w, int h);
@@ -50,10 +50,10 @@ int main(int argc, char** argv){
 */
   // ################# AFFICHAGE ##################
 
-  /* Initialisation */
-  Init_SDL();
-  /* Création de la fenêtre */
-  CreateWindow(SCREEN_W, SCREEN_H);
+    /* Initialisation */
+    Init_SDL();
+    /* Création de la fenêtre */
+    CreateWindow(SCREEN_W, SCREEN_H);
 	/* Rendu OSM */
 	OSM_Rendering(pWindow, SCREEN_W, SCREEN_H, osmData);
 	/* Boucle d'évenements */

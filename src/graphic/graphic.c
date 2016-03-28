@@ -30,9 +30,8 @@ STYLE_ENTRY* getStyleOf(char *key, char *value){
 			return &_dico[i];
 		}
 	}
-	return &_dico[0];
+	return NULL;
 }
-
 
 void openStyleSheet(char *file){
   FILE* f = fopen(file, "r");
@@ -47,6 +46,7 @@ void openStyleSheet(char *file){
 
     int i = 0;
     char* argv[64];
+    int priority = 0;
 
     while(fgets(buff, sizeof(buff), f) != NULL){
       tokenize_command(buff, argv);
@@ -62,12 +62,15 @@ void openStyleSheet(char *file){
       _dico[i].weigth_IN = atoi(argv[2]);
       _dico[i].weigth_OUT = atoi(argv[3]);
 
-      RGBA_COLOR color_IN = {atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), atoi(argv[7])};
-      RGBA_COLOR color_OUT = {atoi(argv[8]), atoi(argv[9]), atoi(argv[10]), atoi(argv[11])};
+      RGBA_COLOR color_IN = {atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), 255};
+      RGBA_COLOR color_OUT = {atoi(argv[7]), atoi(argv[8]), atoi(argv[9]), 255};
 
       _dico[i].color_IN = color_IN;
       _dico[i].color_OUT = color_OUT;
 
+      _dico[i].priority = priority;
+
+      priority++;
       i++;
     }
   }
@@ -102,27 +105,28 @@ void CreateRenderer(SDL_Window *pWindow){
 /* Choisie la fonction d'affichage appropriée en fonction de la clé */ 
 void drawWay(SDL_Renderer *ren, OSM_Way *way){
 	
-	if(way->nb_tag > 0)
-	{
-		char *key = way->tags[0].k;
+  if(way->nb_tag > 0){
+    for(int i=0; i< way->nb_tag; i++){
+      char *key = way->tags[i].k;
 
-		if(strcmp(key, "highway") == 0 || strcmp(key, "railway") == 0 || strcmp(key, "waterway") == 0){
-			draw_openedWay(ren, way);
-		  //printf("%s\n", " -> draw_openedWay");
-		}
-		else if(strcmp(key, "building") == 0 || strcmp(key, "natural") == 0 || strcmp(key, "landuse") == 0 || strcmp(key, "leisure") == 0){
-			draw_closedWay(ren, way);
-		  //printf("%s\n", " -> draw_closedWay");
-		}
-	}
+      if(strcmp(key, "highway") == 0 || strcmp(key, "railway") == 0 || strcmp(key, "waterway") == 0){
+        draw_openedWay(ren, way);
+        break;
+      }
+      else if(strcmp(key, "building") == 0 || strcmp(key, "natural") == 0 || strcmp(key, "landuse") == 0 || strcmp(key, "leisure") == 0){
+        draw_closedWay(ren, way);
+        break;
+      }
+    }
+  }
 }
 
 
 /* Affichage d'une way ouverte */
 void draw_openedWay(SDL_Renderer *ren, OSM_Way *way){
 
-  char *key = "default";
-  char *value = "default";
+  char *key = "";
+  char *value = "";
 
   if(way->nb_tag > 0){
     key = way->tags[0].k;
@@ -131,58 +135,61 @@ void draw_openedWay(SDL_Renderer *ren, OSM_Way *way){
 
 	STYLE_ENTRY *style = getStyleOf(key, value);
 
-  int weigth_IN = style->weigth_IN;
-  int weigth_OUT = style->weigth_OUT;
-	RGBA_COLOR *rgb_IN = &style->color_IN;
-	RGBA_COLOR *rgb_OUT = &style->color_OUT;
+  if(style != NULL){
 
-  double latitude = 0;
-  double longitude = 0;
-  int x,y, x_suiv, y_suiv;
+    int weigth_IN = style->weigth_IN;
+    int weigth_OUT = style->weigth_OUT;
+  	RGBA_COLOR *rgb_IN = &style->color_IN;
+  	RGBA_COLOR *rgb_OUT = &style->color_OUT;
 
-	// Draw shape
-  for(int i=0; i < (way->nb_node)-1 ; i++){
+    double latitude = 0;
+    double longitude = 0;
+    int x,y, x_suiv, y_suiv;
 
-    latitude = way->nodes[i]->lat;
-    longitude = way->nodes[i]->lon;
+  	// Draw shape
+    for(int i=0; i < (way->nb_node)-1 ; i++){
 
-    x = ((longitude - bounds->minlon) / interval_X) * SCREEN_W;
-    y = ((latitude - bounds->minlat) / interval_Y) * SCREEN_H; 
+      latitude = way->nodes[i]->lat;
+      longitude = way->nodes[i]->lon;
 
-/*
-  	if(i > 0 && i < (way->nb_node)-1){
-	  	filledCircleRGBA(ren, x, y, (weigth_IN/2),
-	  		rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
-	  }
-*/
-    latitude = way->nodes[i+1]->lat;
-    longitude = way->nodes[i+1]->lon;
+      x = ((longitude - bounds->minlon) / interval_X) * SCREEN_W;
+      y = ((latitude - bounds->minlat) / interval_Y) * SCREEN_H; 
 
-    x_suiv = ((longitude - bounds->minlon) / interval_X) * SCREEN_W;
-    y_suiv = ((latitude - bounds->minlat) / interval_Y) * SCREEN_H;  
+  /*
+    	if(i > 0 && i < (way->nb_node)-1){
+  	  	filledCircleRGBA(ren, x, y, (weigth_IN/2),
+  	  		rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
+  	  }
+  */
+      latitude = way->nodes[i+1]->lat;
+      longitude = way->nodes[i+1]->lon;
 
-  	thickLineRGBA(ren, x, SCREEN_H - y, 
- 			x_suiv, SCREEN_H - y_suiv, weigth_IN, rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
-  }
+      x_suiv = ((longitude - bounds->minlon) / interval_X) * SCREEN_W;
+      y_suiv = ((latitude - bounds->minlat) / interval_Y) * SCREEN_H;  
+
+    	thickLineRGBA(ren, x, SCREEN_H - y, 
+   			x_suiv, SCREEN_H - y_suiv, weigth_IN, rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
+    }
 
 
-  // Draw inner shape
-  for(int i=0; i < (way->nb_node)-1 ; i++){
+    // Draw inner shape
+    for(int i=0; i < (way->nb_node)-1 ; i++){
 
-    latitude = way->nodes[i]->lat;
-    longitude = way->nodes[i]->lon;
+      latitude = way->nodes[i]->lat;
+      longitude = way->nodes[i]->lon;
 
-    x = ((longitude - bounds->minlon) / interval_X) * SCREEN_W;
-    y = ((latitude - bounds->minlat) / interval_Y) * SCREEN_H; 
+      x = ((longitude - bounds->minlon) / interval_X) * SCREEN_W;
+      y = ((latitude - bounds->minlat) / interval_Y) * SCREEN_H; 
 
-    latitude = way->nodes[i+1]->lat;
-    longitude = way->nodes[i+1]->lon;
+      latitude = way->nodes[i+1]->lat;
+      longitude = way->nodes[i+1]->lon;
 
-    x_suiv = ((longitude - bounds->minlon) / interval_X) * SCREEN_W;
-    y_suiv = ((latitude - bounds->minlat) / interval_Y) * SCREEN_H;  
+      x_suiv = ((longitude - bounds->minlon) / interval_X) * SCREEN_W;
+      y_suiv = ((latitude - bounds->minlat) / interval_Y) * SCREEN_H;  
 
-    thickLineRGBA(ren, x, SCREEN_H - y, 
-      x_suiv, SCREEN_H - y_suiv, (weigth_IN - weigth_OUT) , rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
+      thickLineRGBA(ren, x, SCREEN_H - y, 
+        x_suiv, SCREEN_H - y_suiv, (weigth_IN - weigth_OUT) , rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
+    }
   }
 }
 
@@ -190,39 +197,50 @@ void draw_openedWay(SDL_Renderer *ren, OSM_Way *way){
 /* Affichage d'une way fermée */
 void draw_closedWay(SDL_Renderer *ren, OSM_Way *way){
 
-  char *key = "default";
-  char *value = "default";
+  char *key = "";
+  char *value = "";
+  STYLE_ENTRY *style = NULL;
 
   if(way->nb_tag > 0){
-    key = way->tags[0].k;
-    value = way->tags[0].v;
+    for(int i=0; i< way->nb_tag; i++){
+      key = way->tags[i].k;
+      value = way->tags[i].v;
+      //printf("[%s:%s]\n", key, value);
+      style = getStyleOf(key, value);
+      if(style != NULL) break;
+    }
   }
 
-	STYLE_ENTRY *style = getStyleOf(key, value);
-	RGBA_COLOR *rgb_IN = &style->color_IN;
-  RGBA_COLOR *rgb_OUT = &style->color_OUT;
+  if(style != NULL){
+  	RGBA_COLOR *rgb_IN = &style->color_IN;
+    RGBA_COLOR *rgb_OUT = &style->color_OUT;
 
-	int nb_nodes = way->nb_node-1;
-	short vx[nb_nodes];
-	short vy[nb_nodes];
+  	int nb_nodes = way->nb_node-1;
+  	short vx[nb_nodes];
+  	short vy[nb_nodes];
 
-	for(int i=0; i < nb_nodes; i++){
-    if(way->nodes[i]->id != 0){
+  	for(int i=0; i < nb_nodes; i++){
+      if(way->nodes[i]->id != 0){
 
-      OSM_Node *nd = searchNode(abr_node, way->nodes[i]->id);
+        OSM_Node *nd = searchNode(abr_node, way->nodes[i]->id);
 
-      if(nd != 0){
-        vx[i] = ((nd->lon - bounds->minlon) / interval_X) * SCREEN_W;
-        vy[i] = SCREEN_H - (((nd->lat - bounds->minlat) / interval_Y) * SCREEN_H);  
+        if(nd != 0){
+          vx[i] = ((nd->lon - bounds->minlon) / interval_X) * SCREEN_W;
+          vy[i] = SCREEN_H - (((nd->lat - bounds->minlat) / interval_Y) * SCREEN_H);  
+        }
       }
+  	}
+
+    filledPolygonRGBA(ren, vx, vy, nb_nodes, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
+
+    // Contours de la forme
+    for(int i=0; i < nb_nodes-1; i++){
+      thickLineRGBA(ren, vx[i], vy[i], 
+        vx[i+1], vy[i+1], 1, rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
     }
-	}
 
-  filledPolygonRGBA(ren, vx, vy, nb_nodes, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
-
-  for(int i=0; i < nb_nodes-1; i++){
-    thickLineRGBA(ren, vx[i], vy[i], 
-      vx[i+1], vy[i+1], 1, rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
+    thickLineRGBA(ren, vx[0], vy[0], 
+        vx[nb_nodes-1], vy[nb_nodes-1], 1, rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
   }
 }
 
@@ -300,43 +318,25 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data){
 
 void CreateHeapPriority(minHeap *hp, OSM_Data* data){
   int priorite = 0;
-  char *tag = NULL;
-  char *value = NULL;
+  char *tag = "";
+  char *value = "";
 
   for(int i=0; i< data->nb_way; i++){
     priorite = 99;
-    tag = data->ways[i].tags[0].k;
-    value = data->ways[i].tags[0].v;
 
-    if(tag != NULL && value != NULL){
+    if(data->ways[i].nb_tag > 0){
+      for(int j=0; j < data->ways[i].nb_tag; j++){
+
+        tag = data->ways[i].tags[j].k;
+        value = data->ways[i].tags[j].v;
+        STYLE_ENTRY *style = getStyleOf(tag, value);
+
+        if(style != NULL){
+          priorite = style->priority;
+          break;
+        }
+      }
       //printf("[%s:%s]\n", tag, value);
-
-      if(strcmp(tag, "landuse") == 0){
-        if(strcmp(value, "grass") == 0) priorite = 0;
-        if(strcmp(value, "forest") == 0) priorite = 1;
-      }
-
-      if(strcmp(tag, "leisure") == 0) priorite = 2;
-
-      if(strcmp(tag, "waterway") == 0){
-        if(strcmp(value, "canal") == 0) priorite = 3;
-        if(strcmp(value, "river") == 0) priorite = 4;
-      }
-
-      if(strcmp(tag, "building") == 0) priorite = 5;
-
-      if(strcmp(tag, "railway") == 0) priorite = 6;
-
-      if(strcmp(tag, "highway") == 0){
-        if(strcmp(value, "pedestrian") == 0) priorite = 7;
-        if(strcmp(value, "living_street") == 0) priorite = 8;
-        if(strcmp(value, "service") == 0) priorite = 9;
-        if(strcmp(value, "residential") == 0) priorite = 10;
-        if(strcmp(value, "unclassified") == 0) priorite = 11;
-        if(strcmp(value, "tertiary") == 0) priorite = 12;
-        if(strcmp(value, "secondary") == 0) priorite = 13;
-        if(strcmp(value, "primary") == 0) priorite = 14;
-      }
     }
 
     insertNode(hp, priorite, &data->ways[i]);
