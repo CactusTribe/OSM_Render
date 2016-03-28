@@ -1,8 +1,10 @@
-#include "graphic.h"
 #include <string.h>
 #include <SDL2/SDL_ttf.h>
 #include <math.h>
 #include <stdio.h>
+
+#include "graphic.h"
+#include "../model/minHeap.h"
 
 SDL_Renderer *ren = NULL;
 OSM_Bounds *bounds = NULL;
@@ -275,19 +277,71 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data){
   CreateRenderer(pWindow);
 	SDL_RenderClear(ren); // Clear la fenêtre
 
+  // Création du tas de priorités min
+  minHeap priority_heap = initMinHeap(data->nb_way);
+  CreateHeapPriority(&priority_heap, data);
 
-	for(int i=0; i< data->nb_way; i++)
-		drawWay(ren, &data->ways[i]);
+  // Affichage des ways en fonction de leur priorité
+  for(int i=0; i<data->nb_way; i++){
+    OSM_Way* way = getHead(&priority_heap);
+    drawWay(ren, way);
+    deleteNode(&priority_heap);
+  }
 
   // Affichage texte ------------------------------
   //SDL_Color black = {0, 0, 0}; 
   //drawTexte(ren, 200, 200, 100, 50, "fonts/times.ttf", 80, "texte", &black);
   //  ----------------------------------------------*/
 
+  deleteMinHeap(&priority_heap);
   freeDico(_dico);
   SDL_RenderPresent(ren); // Affiche les modifications
 }
 
+void CreateHeapPriority(minHeap *hp, OSM_Data* data){
+  int priorite = 0;
+  char *tag = NULL;
+  char *value = NULL;
+
+  for(int i=0; i< data->nb_way; i++){
+    priorite = 99;
+    tag = data->ways[i].tags[0].k;
+    value = data->ways[i].tags[0].v;
+
+    if(tag != NULL && value != NULL){
+      //printf("[%s:%s]\n", tag, value);
+
+      if(strcmp(tag, "landuse") == 0){
+        if(strcmp(value, "grass") == 0) priorite = 0;
+        if(strcmp(value, "forest") == 0) priorite = 1;
+      }
+
+      if(strcmp(tag, "leisure") == 0) priorite = 2;
+
+      if(strcmp(tag, "waterway") == 0){
+        if(strcmp(value, "canal") == 0) priorite = 3;
+        if(strcmp(value, "river") == 0) priorite = 4;
+      }
+
+      if(strcmp(tag, "building") == 0) priorite = 5;
+
+      if(strcmp(tag, "railway") == 0) priorite = 6;
+
+      if(strcmp(tag, "highway") == 0){
+        if(strcmp(value, "pedestrian") == 0) priorite = 7;
+        if(strcmp(value, "living_street") == 0) priorite = 8;
+        if(strcmp(value, "service") == 0) priorite = 9;
+        if(strcmp(value, "residential") == 0) priorite = 10;
+        if(strcmp(value, "unclassified") == 0) priorite = 11;
+        if(strcmp(value, "tertiary") == 0) priorite = 12;
+        if(strcmp(value, "secondary") == 0) priorite = 13;
+        if(strcmp(value, "primary") == 0) priorite = 14;
+      }
+    }
+
+    insertNode(hp, priorite, &data->ways[i]);
+  }
+}
 
 void OSM_DestroyRenderer(){
 	SDL_DestroyRenderer(ren);

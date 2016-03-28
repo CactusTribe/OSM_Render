@@ -5,6 +5,7 @@
 #include <SDL2/SDL2_gfxPrimitives.h>
 #include "../model/osm_types.h"
 #include "../model/OSM_ABR.h"
+#include "../model/minHeap.h"
 
 #define ARGSEP " :\t\n"
 #define DICO_SIZE 1024
@@ -28,6 +29,7 @@ typedef struct{
 void openStyleSheet(char *file);
 void freeDico(STYLE_ENTRY *dico);
 int tokenize_command(char* argl, char** argv);
+void CreateHeapPriority(minHeap *hp, OSM_Data* data);
 
 void drawWay(SDL_Renderer *ren, OSM_Way *way);
 void drawNode(SDL_Renderer *ren, OSM_Node *node);
