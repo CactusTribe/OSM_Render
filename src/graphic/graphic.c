@@ -14,6 +14,8 @@ int NB_STYLES = 0;
 
 int SCREEN_W = 0;
 int SCREEN_H = 0;
+int MID_SCR_W = 0;
+int MID_SCR_H = 0;
 double SCALE = 1;
 
 // Retourne le style en fonction de la clé
@@ -149,22 +151,21 @@ void draw_openedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
       latitude = way->nodes[i]->lat;
       longitude = way->nodes[i]->lon;
 
-      x = (lon2x_m(longitude) - lon2x_m(bounds->minlon)) * SCALE;
-      y = (lat2y_m(latitude) - lat2y_m(bounds->minlat)) * SCALE; 
+      x = lon2x(longitude);
+      y = lat2y(latitude); 
 
     	if(i > 0 && i < (way->nb_node)-1){
-  	  	filledCircleRGBA(ren, x, SCREEN_H - y, (weigth_IN/2),
-  	  		rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
+  	  	filledCircleRGBA(ren, x, y, (weigth_IN/2), rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
   	  }
 
       latitude = way->nodes[i+1]->lat;
       longitude = way->nodes[i+1]->lon;
 
-      x_suiv = (lon2x_m(longitude) - lon2x_m(bounds->minlon)) * SCALE;
-      y_suiv = (lat2y_m(latitude) - lat2y_m(bounds->minlat)) * SCALE; 
+      x_suiv = lon2x(longitude);
+      y_suiv = lat2y(latitude);
 
-    	thickLineRGBA(ren, x, SCREEN_H - y, 
-   			x_suiv, SCREEN_H - y_suiv, weigth_IN, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
+    	thickLineRGBA(ren, x, y, 
+   			x_suiv, y_suiv, weigth_IN, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
     }
   }
 }
@@ -185,8 +186,8 @@ void draw_closedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
 
       OSM_Node *nd = way->nodes[i];
 
-      vx[i] = (lon2x_m(nd->lon) - lon2x_m(bounds->minlon)) * SCALE;
-      vy[i] = SCREEN_H - ((lat2y_m(nd->lat) - lat2y_m(bounds->minlat)) * SCALE);  
+      vx[i] = lon2x(nd->lon);
+      vy[i] = lat2y(nd->lat);  
       
   	}
 
@@ -199,8 +200,8 @@ void draw_closedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
 void drawNode(SDL_Renderer *ren, OSM_Node *node){
 	double x,y;
 
-	x = (lon2x_m(node->lon) - lon2x_m(bounds->minlon)) * SCALE;
-  y = SCREEN_H - (lat2y_m(node->lat) - lat2y_m(bounds->minlat)) * SCALE; 
+	x = lon2x(node->lon);
+  y = lat2y(node->lat);
 
 	filledCircleRGBA(ren, x, SCREEN_H - y, 2, 50, 50, 50, 255);
 }
@@ -283,6 +284,8 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data){
 	bounds = data->bounds;
 	SCREEN_W = w;
 	SCREEN_H = h;
+  MID_SCR_W = SCREEN_W / 2;
+  MID_SCR_H = SCREEN_H / 2;
 
   //##################################
 
@@ -296,13 +299,14 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data){
   double Inter_X = lon2x_m(bounds->maxlon) - lon2x_m(bounds->minlon);
   double Inter_Y = lat2y_m(bounds->maxlat) - lat2y_m(bounds->minlat);
 
-  double ratio_X = ceil(Inter_X / SCREEN_W);
-  double ratio_Y = ceil(Inter_Y / SCREEN_H);
+  double ratio_X = SCREEN_W / Inter_X;
+  double ratio_Y = SCREEN_H / Inter_Y;
 
   if(ratio_X > ratio_Y) SCALE = ratio_X;
   else SCALE = ratio_Y;
 
   printf("SCALE = %f\n", SCALE);
+
 
   //##################################
 
@@ -370,6 +374,14 @@ double y2lat_m(double y) { return rad2deg(2 * atan(exp( (y / earth_radius ) )) -
 double x2lon_m(double x) { return rad2deg(x / earth_radius); }
 double lat2y_m(double lat) { return earth_radius * log(tan(M_PI/4+ deg2rad(lat)/2)); }
 double lon2x_m(double lon) { return deg2rad(lon) * earth_radius; }
+
+int lon2x(double lon){
+  return ((lon2x_m(lon) - lon2x_m(bounds->minlon)) * SCALE);
+}
+
+int lat2y(double lat){
+  return (SCREEN_H - ((lat2y_m(lat) - lat2y_m(bounds->minlat)) * SCALE)); 
+}
 
 void _aapolygonRGBA(SDL_Renderer *renderer, const Sint16 *vx, const Sint16 *vy, int n, Uint8 r, Uint8 g, Uint8 b, Uint8 a){
   for(int i=0; i < n-1; i++){

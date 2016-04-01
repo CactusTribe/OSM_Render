@@ -54,6 +54,10 @@ double x2lon_m(double x);
 double lat2y_m(double lat);
 double lon2x_m(double lon);
 
+// Fonctions de positionnement
+int lat2y(double lat);
+int lon2x(double lon);
+
 // Gestion du rendu
 void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data);
 void CreateWindow(int w, int h);
