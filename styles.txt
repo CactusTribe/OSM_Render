@@ -26,7 +26,7 @@ leisure garden 2 0 207 236 168 207 236 168
 leisure stadium 2 0 38 198 134 38 198 134
 waterway river 15 0 136 189 214 136 189 214 
 waterway canal 8 0 136 189 214 136 189 214 
-building yes 1 0 190 190 190 80 80 80 
+building yes 1 0 210 210 210 130 130 130 
 railway tram 9 0 69 69 69 69 69 69
 highway bridleway 2 0 65 182 87 65 182 87
 highway path 2 0 255 141 135 255 141 135
@@ -35,10 +35,10 @@ highway footway 2 0 255 144 138 255 144 138
 highway cycleway 2 0 157 156 246 157 156 246
 highway pedestrian 5 2 223 220 234 168 166 167
 highway living_street 5 2 237 238 237 197 197 197 
-highway service 5 2 255 255 255 174 174 174 
-highway residential 5 2 255 255 255 174 174 174
-highway unclassified 8 2 255 255 255 174 174 174 
-highway tertiary 15 5 255 255 255 174 174 174 
+highway service 5 2 230 230 230 174 174 174 
+highway residential 5 2 230 230 230 174 174 174
+highway unclassified 8 2 230 230 230 174 174 174 
+highway tertiary 15 5 230 230 230 174 174 174 
 highway secondary 15 5 243 254 181 117 144 0 
 highway primary 15 3 254 216 155 176 124 0 
 natural water 1 0 136 189 214 136 189 214

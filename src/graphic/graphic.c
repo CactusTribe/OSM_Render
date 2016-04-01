@@ -8,19 +8,13 @@
 
 SDL_Renderer *ren = NULL;
 OSM_Bounds *bounds = NULL;
-ABR_Node *abr_node = NULL;
 
 STYLE_ENTRY _dico[DICO_SIZE] = {};
 int NB_STYLES = 0;
 
 int SCREEN_W = 0;
 int SCREEN_H = 0;
-double interval_Y = 0;
-double interval_X = 0;
-
-void draw_openedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style);
-void draw_closedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style);
-
+double SCALE = 1;
 
 // Retourne le style en fonction de la clé
 STYLE_ENTRY* getStyleOf(char *key, char *value){
@@ -100,6 +94,10 @@ void CreateRenderer(SDL_Window *pWindow){
     SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
 }
 
+void OSM_DestroyRenderer(){
+  SDL_DestroyRenderer(ren);
+}
+
 
 /* Choisie la fonction d'affichage appropriée en fonction de la clé */ 
 void drawWay(SDL_Renderer *ren, OSM_Way *way){
@@ -151,43 +149,22 @@ void draw_openedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
       latitude = way->nodes[i]->lat;
       longitude = way->nodes[i]->lon;
 
-      x = ((longitude - bounds->minlon) / interval_X) * SCREEN_W;
-      y = ((latitude - bounds->minlat) / interval_Y) * SCREEN_H; 
+      x = (lon2x_m(longitude) - lon2x_m(bounds->minlon)) * SCALE;
+      y = (lat2y_m(latitude) - lat2y_m(bounds->minlat)) * SCALE; 
 
-  /*
     	if(i > 0 && i < (way->nb_node)-1){
-  	  	filledCircleRGBA(ren, x, y, (weigth_IN/2),
-  	  		rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
+  	  	filledCircleRGBA(ren, x, SCREEN_H - y, (weigth_IN/2),
+  	  		rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
   	  }
-  */
+
       latitude = way->nodes[i+1]->lat;
       longitude = way->nodes[i+1]->lon;
 
-      x_suiv = ((longitude - bounds->minlon) / interval_X) * SCREEN_W;
-      y_suiv = ((latitude - bounds->minlat) / interval_Y) * SCREEN_H;  
+      x_suiv = (lon2x_m(longitude) - lon2x_m(bounds->minlon)) * SCALE;
+      y_suiv = (lat2y_m(latitude) - lat2y_m(bounds->minlat)) * SCALE; 
 
     	thickLineRGBA(ren, x, SCREEN_H - y, 
-   			x_suiv, SCREEN_H - y_suiv, weigth_IN, rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
-    }
-
-
-    // Draw inner shape
-    for(int i=0; i < (way->nb_node)-1 ; i++){
-
-      latitude = way->nodes[i]->lat;
-      longitude = way->nodes[i]->lon;
-
-      x = ((longitude - bounds->minlon) / interval_X) * SCREEN_W;
-      y = ((latitude - bounds->minlat) / interval_Y) * SCREEN_H; 
-
-      latitude = way->nodes[i+1]->lat;
-      longitude = way->nodes[i+1]->lon;
-
-      x_suiv = ((longitude - bounds->minlon) / interval_X) * SCREEN_W;
-      y_suiv = ((latitude - bounds->minlat) / interval_Y) * SCREEN_H;  
-
-      thickLineRGBA(ren, x, SCREEN_H - y, 
-        x_suiv, SCREEN_H - y_suiv, (weigth_IN - weigth_OUT) , rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
+   			x_suiv, SCREEN_H - y_suiv, weigth_IN, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
     }
   }
 }
@@ -200,32 +177,21 @@ void draw_closedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
   	RGBA_COLOR *rgb_IN = &style->color_IN;
     RGBA_COLOR *rgb_OUT = &style->color_OUT;
 
-  	int nb_nodes = way->nb_node-1;
+  	int nb_nodes = (way->nb_node)-1;
   	short vx[nb_nodes];
   	short vy[nb_nodes];
 
   	for(int i=0; i < nb_nodes; i++){
-      if(way->nodes[i]->id != 0){
 
-        OSM_Node *nd = searchNode(abr_node, way->nodes[i]->id);
+      OSM_Node *nd = way->nodes[i];
 
-        if(nd != 0){
-          vx[i] = ((nd->lon - bounds->minlon) / interval_X) * SCREEN_W;
-          vy[i] = SCREEN_H - (((nd->lat - bounds->minlat) / interval_Y) * SCREEN_H);  
-        }
-      }
+      vx[i] = (lon2x_m(nd->lon) - lon2x_m(bounds->minlon)) * SCALE;
+      vy[i] = SCREEN_H - ((lat2y_m(nd->lat) - lat2y_m(bounds->minlat)) * SCALE);  
+      
   	}
 
     filledPolygonRGBA(ren, vx, vy, nb_nodes, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
-
-    // Contours de la forme
-    for(int i=0; i < nb_nodes-1; i++){
-      thickLineRGBA(ren, vx[i], vy[i], 
-        vx[i+1], vy[i+1], 1, rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
-    }
-
-    thickLineRGBA(ren, vx[0], vy[0], 
-        vx[nb_nodes-1], vy[nb_nodes-1], 1, rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
+    _aapolygonRGBA(ren, vx, vy, nb_nodes, rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
   }
 }
 
@@ -233,8 +199,8 @@ void draw_closedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
 void drawNode(SDL_Renderer *ren, OSM_Node *node){
 	double x,y;
 
-	x = ((node->lon - bounds->minlon) / interval_X) * SCREEN_W;
-	y = ((node->lat - bounds->minlat) / interval_Y) * SCREEN_H;
+	x = ((node->lon - bounds->minlon) / INTER_X) * SCREEN_W;
+	y = ((node->lat - bounds->minlat) / INTER_Y) * SCREEN_H;
 
 	filledCircleRGBA(ren, x, SCREEN_H - y, 2, 50, 50, 50, 255);
 }
@@ -260,7 +226,7 @@ void drawRelation(SDL_Renderer *ren, OSM_Relation *rel){
   }
 
   if(multipoly == 1){
-    printf("multipoly id = %lu\n", rel->id);
+    //printf("multipoly id = %lu\n", rel->id);
     if(style != NULL) printf("  [%s:%s]\n", style->key, style->value);
 
     // Affichage membres OUTER
@@ -314,12 +280,31 @@ void drawOSM_ABR(ABR_Node *tree){
 
 void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data){
 
-  abr_node = data->abr_node;
 	bounds = data->bounds;
-  interval_Y = bounds->maxlat - bounds->minlat;
-  interval_X = bounds->maxlon - bounds->minlon;
 	SCREEN_W = w;
 	SCREEN_H = h;
+
+  //##################################
+
+  printf("LAT : [%f:%f]\n", bounds->minlat, bounds->maxlat);
+  printf("LON : [%f:%f]\n", bounds->minlon, bounds->maxlon); 
+
+  printf("Y : [%f:%f]\n", lat2y_m(bounds->minlat), lat2y_m(bounds->maxlat));
+  printf("X : [%f:%f]\n", lon2x_m(bounds->minlon), lon2x_m(bounds->maxlon));
+
+  // Calcul du ratio permetant une couverture complète de la fenêtre
+  double Inter_X = lon2x_m(bounds->maxlon) - lon2x_m(bounds->minlon);
+  double Inter_Y = lat2y_m(bounds->maxlat) - lat2y_m(bounds->minlat);
+
+  double ratio_X = ceil(Inter_X / SCREEN_W);
+  double ratio_Y = ceil(Inter_Y / SCREEN_H);
+
+  if(ratio_X > ratio_Y) SCALE = ratio_X;
+  else SCALE = ratio_Y;
+
+  printf("SCALE = %f\n", SCALE);
+
+  //##################################
 
   // Ouverture du fichier de styles
   openStyleSheet("styles.txt");
@@ -332,7 +317,6 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data){
   minHeap priority_heap = initMinHeap(data->nb_way);
   CreateHeapPriority(&priority_heap, data);
 
-
   // Affichage des ways en fonction de leur priorité
   for(int i=0; i<data->nb_way; i++){
     OSM_Way* way = getHead(&priority_heap);
@@ -340,15 +324,16 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data){
     deleteNode(&priority_heap);
   }
 
-
+/*
   // Affichage des relations
   for(int i=0; i < data->nb_relation; i++)
     drawRelation(ren, &data->relations[i]);
-
+*/
   // Affichage texte ------------------------------
   //SDL_Color black = {0, 0, 0}; 
   //drawTexte(ren, 200, 200, 100, 50, "fonts/times.ttf", 80, "texte", &black);
   //  ----------------------------------------------*/
+
 
   deleteMinHeap(&priority_heap);
   freeDico(_dico);
@@ -371,17 +356,24 @@ void CreateHeapPriority(minHeap *hp, OSM_Data* data){
         STYLE_ENTRY *style = getStyleOf(tag, value);
 
         if(style != NULL){
-          //printf("[%s:%s]\n", tag, value);
           priorite = style->priority;
           break;
         }
       }
     }
-
     insertNode(hp, priorite, &data->ways[i]);
   }
 }
 
-void OSM_DestroyRenderer(){
-	SDL_DestroyRenderer(ren);
+
+double y2lat_m(double y) { return rad2deg(2 * atan(exp( (y / earth_radius ) )) - M_PI/2); }
+double x2lon_m(double x) { return rad2deg(x / earth_radius); }
+double lat2y_m(double lat) { return earth_radius * log(tan(M_PI/4+ deg2rad(lat)/2)); }
+double lon2x_m(double lon) { return deg2rad(lon) * earth_radius; }
+
+void _aapolygonRGBA(SDL_Renderer *renderer, const Sint16 *vx, const Sint16 *vy, int n, Uint8 r, Uint8 g, Uint8 b, Uint8 a){
+  for(int i=0; i < n-1; i++){
+    aalineRGBA(renderer, vx[i], vy[i], vx[i+1], vy[i+1], r, g, b, a);
+  }
+  aalineRGBA(renderer, vx[n-1], vy[n-1], vx[0], vy[0], r, g, b, a);
 }
