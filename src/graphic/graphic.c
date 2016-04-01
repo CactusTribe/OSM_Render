@@ -199,8 +199,8 @@ void draw_closedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
 void drawNode(SDL_Renderer *ren, OSM_Node *node){
 	double x,y;
 
-	x = ((node->lon - bounds->minlon) / INTER_X) * SCREEN_W;
-	y = ((node->lat - bounds->minlat) / INTER_Y) * SCREEN_H;
+	x = (lon2x_m(node->lon) - lon2x_m(bounds->minlon)) * SCALE;
+  y = SCREEN_H - (lat2y_m(node->lat) - lat2y_m(bounds->minlat)) * SCALE; 
 
 	filledCircleRGBA(ren, x, SCREEN_H - y, 2, 50, 50, 50, 255);
 }
