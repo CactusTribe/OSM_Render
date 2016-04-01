@@ -7,7 +7,8 @@
 #include "../model/minHeap.h"
 
 SDL_Renderer *ren = NULL;
-OSM_Bounds *bounds = NULL;
+OSM_Data *data = NULL;
+minHeap priority_heap;
 
 STYLE_ENTRY _dico[DICO_SIZE] = {};
 int NB_STYLES = 0;
@@ -16,6 +17,8 @@ int SCREEN_W = 0;
 int SCREEN_H = 0;
 int MID_SCR_W = 0;
 int MID_SCR_H = 0;
+double INTERVAL_X = 0;
+double INTERVAL_Y = 0;
 double SCALE = 1;
 
 // Retourne le style en fonction de la clé
@@ -97,6 +100,8 @@ void CreateRenderer(SDL_Window *pWindow){
 }
 
 void OSM_DestroyRenderer(){
+  deleteMinHeap(&priority_heap);
+  freeDico(_dico);
   SDL_DestroyRenderer(ren);
 }
 
@@ -279,9 +284,8 @@ void drawOSM_ABR(ABR_Node *tree){
 }
 
 
-void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data){
-
-	bounds = data->bounds;
+void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *_data){
+	data = _data;
 	SCREEN_W = w;
 	SCREEN_H = h;
   MID_SCR_W = SCREEN_W / 2;
@@ -289,36 +293,36 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data){
 
   //##################################
 
-  printf("LAT : [%f:%f]\n", bounds->minlat, bounds->maxlat);
-  printf("LON : [%f:%f]\n", bounds->minlon, bounds->maxlon); 
+  printf("LAT : [%f:%f]\n", data->bounds->minlat, data->bounds->maxlat);
+  printf("LON : [%f:%f]\n", data->bounds->minlon, data->bounds->maxlon); 
 
-  printf("Y : [%f:%f]\n", lat2y_m(bounds->minlat), lat2y_m(bounds->maxlat));
-  printf("X : [%f:%f]\n", lon2x_m(bounds->minlon), lon2x_m(bounds->maxlon));
+  printf("Y : [%f:%f]\n", lat2y_m(data->bounds->minlat), lat2y_m(data->bounds->maxlat));
+  printf("X : [%f:%f]\n", lon2x_m(data->bounds->minlon), lon2x_m(data->bounds->maxlon));
 
   // Calcul du ratio permetant une couverture complète de la fenêtre
-  double Inter_X = lon2x_m(bounds->maxlon) - lon2x_m(bounds->minlon);
-  double Inter_Y = lat2y_m(bounds->maxlat) - lat2y_m(bounds->minlat);
+  double INTERVAL_X = lon2x_m(data->bounds->maxlon) - lon2x_m(data->bounds->minlon);
+  double INTERVAL_Y = lat2y_m(data->bounds->maxlat) - lat2y_m(data->bounds->minlat);
 
-  double ratio_X = SCREEN_W / Inter_X;
-  double ratio_Y = SCREEN_H / Inter_Y;
+  double ratio_X = SCREEN_W / INTERVAL_X;
+  double ratio_Y = SCREEN_H / INTERVAL_Y;
 
   if(ratio_X > ratio_Y) SCALE = ratio_X;
   else SCALE = ratio_Y;
-
-  printf("SCALE = %f\n", SCALE);
-
-
-  //##################################
 
   // Ouverture du fichier de styles
   openStyleSheet("styles.txt");
 
 	/* Création du renderer */
   CreateRenderer(pWindow);
-	SDL_RenderClear(ren); // Clear la fenêtre
+
+  RefreshView();
+}
+
+void RefreshView(){
+  SDL_RenderClear(ren); // Clear la fenêtre
 
   // Création du tas de priorités min
-  minHeap priority_heap = initMinHeap(data->nb_way);
+  priority_heap = initMinHeap(data->nb_way);
   CreateHeapPriority(&priority_heap, data);
 
   // Affichage des ways en fonction de leur priorité
@@ -338,9 +342,6 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data){
   //drawTexte(ren, 200, 200, 100, 50, "fonts/times.ttf", 80, "texte", &black);
   //  ----------------------------------------------*/
 
-
-  deleteMinHeap(&priority_heap);
-  freeDico(_dico);
   SDL_RenderPresent(ren); // Affiche les modifications
 }
 
@@ -376,11 +377,11 @@ double lat2y_m(double lat) { return earth_radius * log(tan(M_PI/4+ deg2rad(lat)/
 double lon2x_m(double lon) { return deg2rad(lon) * earth_radius; }
 
 int lon2x(double lon){
-  return ((lon2x_m(lon) - lon2x_m(bounds->minlon)) * SCALE);
+  return ((lon2x_m(lon) - lon2x_m(data->bounds->minlon)) * SCALE);
 }
 
 int lat2y(double lat){
-  return (SCREEN_H - ((lat2y_m(lat) - lat2y_m(bounds->minlat)) * SCALE)); 
+  return (SCREEN_H - ((lat2y_m(lat) - lat2y_m(data->bounds->minlat)) * SCALE)); 
 }
 
 void _aapolygonRGBA(SDL_Renderer *renderer, const Sint16 *vx, const Sint16 *vy, int n, Uint8 r, Uint8 g, Uint8 b, Uint8 a){
@@ -388,4 +389,14 @@ void _aapolygonRGBA(SDL_Renderer *renderer, const Sint16 *vx, const Sint16 *vy, 
     aalineRGBA(renderer, vx[i], vy[i], vx[i+1], vy[i+1], r, g, b, a);
   }
   aalineRGBA(renderer, vx[n-1], vy[n-1], vx[0], vy[0], r, g, b, a);
+}
+
+void upScale(){
+  if(SCALE + 0.5 < 10) SCALE = SCALE + 0.5;
+  RefreshView();
+}
+
+void downScale(){
+  if(SCALE - 0.5 > 0.2) SCALE = SCALE - 0.5;
+  RefreshView();
 }

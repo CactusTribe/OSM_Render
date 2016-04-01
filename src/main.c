@@ -91,9 +91,22 @@ void Quit_SDL(){
 void EventsLoop(){
     if( pWindow ){
         while(!terminer){
-          SDL_WaitEvent(&evenements);
-          if(evenements.window.event == SDL_WINDOWEVENT_CLOSE)
-            terminer = 1;
+            SDL_WaitEvent(&evenements);
+            switch(evenements.type){
+                case SDL_WINDOWEVENT:
+                    if(evenements.window.event == SDL_WINDOWEVENT_CLOSE)
+                        terminer = 1;
+                break;
+                case SDL_KEYUP:
+                    if(evenements.key.keysym.sym == SDLK_UP){
+                        upScale();
+                    }
+                    if(evenements.key.keysym.sym == SDLK_DOWN){
+                        downScale();
+                    }
+                break;
+            }
+    
         }
 
         OSM_DestroyRenderer();

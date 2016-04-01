@@ -58,8 +58,13 @@ double lon2x_m(double lon);
 int lat2y(double lat);
 int lon2x(double lon);
 
+// Fonction de zooom
+void upScale();
+void downScale();
+
 // Gestion du rendu
 void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data);
+void RefreshView();
 void CreateWindow(int w, int h);
 void CreateRenderer();
 void OSM_DestroyRenderer();
