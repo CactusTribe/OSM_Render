@@ -160,7 +160,7 @@ void draw_openedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
       y = lat2y(latitude); 
 
     	if(i > 0 && i < (way->nb_node)-1){
-  	  	filledCircleRGBA(ren, x, y, (weigth_IN/2), rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
+  	  	filledCircleRGBA(ren, x, y, ((weigth_IN * SCALE)/2), rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
   	  }
 
       latitude = way->nodes[i+1]->lat;
@@ -170,7 +170,7 @@ void draw_openedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
       y_suiv = lat2y(latitude);
 
     	thickLineRGBA(ren, x, y, 
-   			x_suiv, y_suiv, weigth_IN, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
+   			x_suiv, y_suiv, (weigth_IN * SCALE), rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
     }
   }
 }
