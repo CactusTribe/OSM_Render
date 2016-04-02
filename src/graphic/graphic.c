@@ -57,11 +57,10 @@ void openStyleSheet(char *file){
 
       _dico[i].key = key;
       _dico[i].value = value;
-      _dico[i].weigth_IN = atoi(argv[2]);
-      _dico[i].weigth_OUT = atoi(argv[3]);
+      _dico[i].weigth = atoi(argv[2]);
 
-      RGBA_COLOR color_IN = {atoi(argv[4]), atoi(argv[5]), atoi(argv[6]), 255};
-      RGBA_COLOR color_OUT = {atoi(argv[7]), atoi(argv[8]), atoi(argv[9]), 255};
+      RGBA_COLOR color_IN = {atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), 255};
+      RGBA_COLOR color_OUT = {atoi(argv[6]), atoi(argv[7]), atoi(argv[8]), 255};
 
       _dico[i].color_IN = color_IN;
       _dico[i].color_OUT = color_OUT;
@@ -117,19 +116,23 @@ void drawWay(SDL_Renderer *ren, OSM_Way *way){
       value = way->tags[i].v;
       style = getStyleOf(key, value);
       if(style != NULL) break;
+      //else printf("[%s:%s]\n", key, value);
     }
   }
 	
   // Si le style existe alors on affiche
   if(style != NULL){
-    if(strcmp(key, "highway") == 0 || strcmp(key, "railway") == 0 || strcmp(key, "waterway") == 0){
-      draw_openedWay(ren, way, style);
+    if(strcmp(key, "highway") == 0 || strcmp(key, "railway") == 0 || strcmp(key, "waterway") == 0|| strcmp(key, "barrier") == 0){
+      if(strcmp(value, "riverbank") == 0)
+        draw_closedWay(ren, way, style);
+      else
+        draw_openedWay(ren, way, style);
     }
     else if(strcmp(key, "building") == 0 || strcmp(key, "natural") == 0 || strcmp(key, "landuse") == 0 || strcmp(key, "leisure") == 0){
       draw_closedWay(ren, way, style);
     }
     else if(strcmp(key, "amenity") == 0){
-      if(strcmp(value, "parking") == 0) 
+      if(strcmp(value, "parking") == 0 || strcmp(value, "school") == 0 || strcmp(value, "college") == 0) 
         draw_closedWay(ren, way, style);
     }   
   }
@@ -140,7 +143,7 @@ void drawWay(SDL_Renderer *ren, OSM_Way *way){
 void draw_openedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
   if(style != NULL){
 
-    int weigth_IN = style->weigth_IN;
+    int weigth = style->weigth;
   	RGBA_COLOR *rgb_IN = &style->color_IN;
 
     double latitude = 0;
@@ -157,7 +160,8 @@ void draw_openedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
       y = lat2y(latitude); 
 
     	if(i > 0 && i < (way->nb_node)-1){
-  	  	filledCircleRGBA(ren, x, y, ((weigth_IN * SCALE)/2), rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
+        if(weigth >= 2)
+  	  	  filledCircleRGBA(ren, x, y, ((weigth * SCALE)/2), rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
   	  }
 
       latitude = way->nodes[i+1]->lat;
@@ -166,8 +170,10 @@ void draw_openedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
       x_suiv = lon2x(longitude);
       y_suiv = lat2y(latitude);
 
-    	thickLineRGBA(ren, x, y, 
-   			x_suiv, y_suiv, (weigth_IN * SCALE), rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
+      if(weigth >= 2)
+        thickLineRGBA(ren, x, y, x_suiv, y_suiv, (weigth * SCALE), rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
+      else
+        aalineRGBA(ren, x, y, x_suiv, y_suiv, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
     }
   }
 }
@@ -288,14 +294,6 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *_data){
   MID_SCR_W = SCREEN_W / 2;
   MID_SCR_H = SCREEN_H / 2;
 
-  //##################################
-
-  printf("LAT : [%f:%f]\n", data->bounds->minlat, data->bounds->maxlat);
-  printf("LON : [%f:%f]\n", data->bounds->minlon, data->bounds->maxlon); 
-
-  printf("Y : [%f:%f]\n", lat2y_m(data->bounds->minlat), lat2y_m(data->bounds->maxlat));
-  printf("X : [%f:%f]\n", lon2x_m(data->bounds->minlon), lon2x_m(data->bounds->maxlon));
-
   // Calcul du ratio permetant une couverture complète de la fenêtre
   INTERVAL_X = lon2x_m(data->bounds->maxlon) - lon2x_m(data->bounds->minlon);
   INTERVAL_Y = lat2y_m(data->bounds->maxlat) - lat2y_m(data->bounds->minlat);
@@ -323,6 +321,7 @@ void RefreshView(){
   priority_heap = initMinHeap(data->nb_way);
   CreateHeapPriority(&priority_heap, data);
 
+  
   // Affichage des ways en fonction de leur priorité
   for(int i=0; i<data->nb_way; i++){
     OSM_Way* way = getHead(&priority_heap);
@@ -330,11 +329,11 @@ void RefreshView(){
     deleteNode(&priority_heap);
   }
 
-  /*
+  
   // Affichage des relations
   for(int i=0; i < data->nb_relation; i++)
     drawRelation(ren, &data->relations[i]);
-  */
+  
 
   // Affichage texte ------------------------------
   //SDL_Color black = {0, 0, 0}; 
@@ -396,6 +395,6 @@ void upScale(){
 }
 
 void downScale(){
-  if(SCALE - 0.1 > 0.1) SCALE = SCALE - 0.1;
+  if(SCALE - 0.1 > 0.5) SCALE = SCALE - 0.1;
   RefreshView();
 }

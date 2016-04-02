@@ -24,8 +24,7 @@ typedef struct{
 typedef struct{
 	char *key;
 	char *value;
-	int weigth_IN;
-	int weigth_OUT;
+	int weigth;
 	RGBA_COLOR color_IN;
 	RGBA_COLOR color_OUT;
 	int priority;

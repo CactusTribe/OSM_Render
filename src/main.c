@@ -18,8 +18,8 @@
 #include "graphic/graphic.h"
 #include "model/OSM_ABR.h"
 
-#define SCREEN_W 800
-#define SCREEN_H 500
+#define SCREEN_W 900
+#define SCREEN_H 620
 
 void Init_SDL();
 void CreateWindow(int w, int h);
