@@ -47,6 +47,9 @@ void drawTexte(SDL_Renderer *ren, int x, int y, int w, int h, char *font, int si
 void drawOSM_ABR(ABR_Node *tree);
 void _aapolygonRGBA(SDL_Renderer *renderer, const Sint16 *vx, const Sint16 *vy, int n, Uint8 r, Uint8 g, Uint8 b, Uint8 a);
 
+// Fonctions de tests
+int polyIsOnScreen(Sint16 *vx, Sint16 *vy, int size);
+
 // Mercator functions
 double y2lat_m(double y);
 double x2lon_m(double x);

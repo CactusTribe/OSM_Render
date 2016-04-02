@@ -18,7 +18,7 @@
 #include "graphic/graphic.h"
 #include "model/OSM_ABR.h"
 
-#define SCREEN_W 900
+#define SCREEN_W 950
 #define SCREEN_H 620
 
 void Init_SDL();

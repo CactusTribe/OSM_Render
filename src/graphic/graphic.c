@@ -9,6 +9,7 @@
 SDL_Renderer *ren = NULL;
 OSM_Data *data = NULL;
 minHeap priority_heap;
+OSM_Way **_ways_by_prio = NULL;
 
 STYLE_ENTRY _dico[DICO_SIZE] = {};
 int NB_STYLES = 0;
@@ -99,6 +100,7 @@ void CreateRenderer(SDL_Window *pWindow){
 
 void OSM_DestroyRenderer(){
   deleteMinHeap(&priority_heap);
+  free(_ways_by_prio);
   freeDico(_dico);
   SDL_DestroyRenderer(ren);
 }
@@ -159,21 +161,27 @@ void draw_openedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
       x = lon2x(longitude);
       y = lat2y(latitude); 
 
-    	if(i > 0 && i < (way->nb_node)-1){
-        if(weigth >= 2)
-  	  	  filledCircleRGBA(ren, x, y, ((weigth * SCALE)/2), rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
-  	  }
-
       latitude = way->nodes[i+1]->lat;
       longitude = way->nodes[i+1]->lon;
 
       x_suiv = lon2x(longitude);
       y_suiv = lat2y(latitude);
 
-      if(weigth >= 2)
-        thickLineRGBA(ren, x, y, x_suiv, y_suiv, (weigth * SCALE), rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
-      else
-        aalineRGBA(ren, x, y, x_suiv, y_suiv, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
+
+      // Si la portion de route est dans la fenêtre on l'affiche
+      if( ((x >= 0 || x <= SCREEN_W) && (x_suiv >= 0 || x_suiv <= SCREEN_W)) || ((y >= 0 || y <= SCREEN_H) && (y_suiv >= 0 || y_suiv <= SCREEN_H)) ){
+
+        if(i > 0 && i < (way->nb_node)-1){
+          if(weigth >= 2)
+            filledCircleRGBA(ren, x, y, ((weigth * SCALE)/2), rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
+        }
+
+        if(weigth >= 2)
+          thickLineRGBA(ren, x, y, x_suiv, y_suiv, (weigth * SCALE), rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
+        else
+          aalineRGBA(ren, x, y, x_suiv, y_suiv, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
+      }
+
     }
   }
 }
@@ -191,16 +199,18 @@ void draw_closedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
   	short vy[nb_nodes];
 
   	for(int i=0; i < nb_nodes; i++){
-
       OSM_Node *nd = way->nodes[i];
 
       vx[i] = lon2x(nd->lon);
-      vy[i] = lat2y(nd->lat);  
-      
+      vy[i] = lat2y(nd->lat);   
   	}
 
-    filledPolygonRGBA(ren, vx, vy, nb_nodes, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
-    _aapolygonRGBA(ren, vx, vy, nb_nodes, rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
+    int onScreen = polyIsOnScreen(vx, vy, nb_nodes);
+
+    if(onScreen){
+      filledPolygonRGBA(ren, vx, vy, nb_nodes, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
+      _aapolygonRGBA(ren, vx, vy, nb_nodes, rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
+    }
   }
 }
 
@@ -225,6 +235,8 @@ void drawRelation(SDL_Renderer *ren, OSM_Relation *rel){
     for(int i=0; i < rel->nb_tag; i++){
       key = rel->tags[i].k;
       value = rel->tags[i].v;
+
+      //printf("[%s:%s]\n", key, value);
 
       if(style == NULL)
         style = getStyleOf(key, value);
@@ -307,6 +319,18 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *_data){
   /* Ouverture du fichier de styles */
   openStyleSheet("styles.txt");
 
+  // Création du tas de priorités min
+  priority_heap = initMinHeap(data->nb_way);
+  CreateHeapPriority(&priority_heap, data);
+
+  // Remplissage de la liste dans l'ordre de priorité
+  _ways_by_prio = malloc(data->nb_way * sizeof(OSM_Way*));
+
+  for(int i=0; i<data->nb_way; i++){
+    _ways_by_prio[i] = getHead(&priority_heap);
+    deleteNode(&priority_heap);
+  }
+
 	/* Création du renderer */
   CreateRenderer(pWindow);
 
@@ -317,24 +341,16 @@ void RefreshView(){
   SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
   SDL_RenderClear(ren); // Clear la fenêtre
 
-  // Création du tas de priorités min
-  priority_heap = initMinHeap(data->nb_way);
-  CreateHeapPriority(&priority_heap, data);
-
-  
   // Affichage des ways en fonction de leur priorité
   for(int i=0; i<data->nb_way; i++){
-    OSM_Way* way = getHead(&priority_heap);
-    drawWay(ren, way);
-    deleteNode(&priority_heap);
+    drawWay(ren, _ways_by_prio[i]);
   }
-
   
   // Affichage des relations
-  for(int i=0; i < data->nb_relation; i++)
+  for(int i=0; i < data->nb_relation; i++){
     drawRelation(ren, &data->relations[i]);
+  }
   
-
   // Affichage texte ------------------------------
   //SDL_Color black = {0, 0, 0}; 
   //drawTexte(ren, 200, 200, 100, 50, "fonts/times.ttf", 80, "texte", &black);
@@ -397,4 +413,17 @@ void upScale(){
 void downScale(){
   if(SCALE - 0.1 > 0.5) SCALE = SCALE - 0.1;
   RefreshView();
+}
+
+int polyIsOnScreen(Sint16 *vx, Sint16 *vy, int size){
+  int nb_points_out = 0;
+  for(int i=0; i<size; i++){
+    if( (vx[i] < 0 || vx[i] > SCREEN_W) || (vy[i] < 0 || vy[i] > SCREEN_H))
+      nb_points_out++;
+  }
+
+  if(nb_points_out == size)
+    return 0;
+  else
+    return 1;
 }
