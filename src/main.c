@@ -98,11 +98,23 @@ void EventsLoop(){
                         terminer = 1;
                 break;
                 case SDL_KEYUP:
-                    if(evenements.key.keysym.sym == SDLK_UP){
+                    if(evenements.key.keysym.sym == SDLK_EQUALS){
                         upScale();
                     }
-                    if(evenements.key.keysym.sym == SDLK_DOWN){
+                    if(evenements.key.keysym.sym == SDLK_MINUS){
                         downScale();
+                    }
+                    if(evenements.key.keysym.sym == SDLK_UP){
+                        moveUP();
+                    }
+                    if(evenements.key.keysym.sym == SDLK_DOWN){
+                        moveDOWN();
+                    }
+                    if(evenements.key.keysym.sym == SDLK_RIGHT){
+                        moveRIGTH();
+                    }
+                    if(evenements.key.keysym.sym == SDLK_LEFT){
+                        moveLEFT();
                     }
                 break;
             }

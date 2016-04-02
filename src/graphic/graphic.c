@@ -8,7 +8,6 @@
 
 SDL_Renderer *ren = NULL;
 OSM_Data *data = NULL;
-minHeap priority_heap;
 OSM_Way **_ways_by_prio = NULL;
 
 STYLE_ENTRY _dico[DICO_SIZE] = {};
@@ -18,6 +17,8 @@ int SCREEN_W = 0;
 int SCREEN_H = 0;
 int MID_SCR_W = 0;
 int MID_SCR_H = 0;
+int REF_X = 0;
+int REF_Y = 0;
 double INTERVAL_X = 0;
 double INTERVAL_Y = 0;
 double SCALE = 1;
@@ -99,7 +100,6 @@ void CreateRenderer(SDL_Window *pWindow){
 }
 
 void OSM_DestroyRenderer(){
-  deleteMinHeap(&priority_heap);
   free(_ways_by_prio);
   freeDico(_dico);
   SDL_DestroyRenderer(ren);
@@ -305,6 +305,8 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *_data){
 	SCREEN_H = h;
   MID_SCR_W = SCREEN_W / 2;
   MID_SCR_H = SCREEN_H / 2;
+  REF_X = MID_SCR_W;
+  REF_Y = MID_SCR_H;
 
   // Calcul du ratio permetant une couverture complète de la fenêtre
   INTERVAL_X = lon2x_m(data->bounds->maxlon) - lon2x_m(data->bounds->minlon);
@@ -320,7 +322,7 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *_data){
   openStyleSheet("styles.txt");
 
   // Création du tas de priorités min
-  priority_heap = initMinHeap(data->nb_way);
+  minHeap priority_heap = initMinHeap(data->nb_way);
   CreateHeapPriority(&priority_heap, data);
 
   // Remplissage de la liste dans l'ordre de priorité
@@ -330,6 +332,7 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *_data){
     _ways_by_prio[i] = getHead(&priority_heap);
     deleteNode(&priority_heap);
   }
+  deleteMinHeap(&priority_heap);
 
 	/* Création du renderer */
   CreateRenderer(pWindow);
@@ -391,11 +394,11 @@ double lat2y_m(double lat) { return earth_radius * log(tan(M_PI/4+ deg2rad(lat)/
 double lon2x_m(double lon) { return deg2rad(lon) * earth_radius; }
 
 int lon2x(double lon){
-  return (MID_SCR_W + (lon2x_m(lon) - lon2x_m(data->bounds->minlon) - (INTERVAL_X / 2)) * SCALE);
+  return (REF_X + (lon2x_m(lon) - lon2x_m(data->bounds->minlon) - (INTERVAL_X / 2)) * SCALE);
 }
 
 int lat2y(double lat){
-  return SCREEN_H - (MID_SCR_H + (lat2y_m(lat) - lat2y_m(data->bounds->minlat) - (INTERVAL_Y / 2)) * SCALE);
+  return SCREEN_H - (REF_Y + (lat2y_m(lat) - lat2y_m(data->bounds->minlat) - (INTERVAL_Y / 2)) * SCALE);
 }
 
 void _aapolygonRGBA(SDL_Renderer *renderer, const Sint16 *vx, const Sint16 *vy, int n, Uint8 r, Uint8 g, Uint8 b, Uint8 a){
@@ -412,6 +415,26 @@ void upScale(){
 
 void downScale(){
   if(SCALE - 0.1 > 0.5) SCALE = SCALE - 0.1;
+  RefreshView();
+}
+
+void moveUP(){
+  REF_Y -= 10;
+  RefreshView();
+}
+
+void moveDOWN(){
+  REF_Y += 10;
+  RefreshView();
+}
+
+void moveRIGTH(){
+  REF_X -= 10;
+  RefreshView();
+}
+
+void moveLEFT(){
+  REF_X += 10;
   RefreshView();
 }
 

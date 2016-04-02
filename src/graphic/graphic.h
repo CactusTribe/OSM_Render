@@ -60,9 +60,15 @@ double lon2x_m(double lon);
 int lat2y(double lat);
 int lon2x(double lon);
 
-// Fonction de zooom
+// Fonctions de zooom
 void upScale();
 void downScale();
+
+// Fonctions de déplacement
+void moveUP();
+void moveDOWN();
+void moveRIGTH();
+void moveLEFT();
 
 // Gestion du rendu
 void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *data);
