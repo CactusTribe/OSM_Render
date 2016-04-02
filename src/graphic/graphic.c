@@ -96,7 +96,6 @@ void freeDico(STYLE_ENTRY *dico){
 
 void CreateRenderer(SDL_Window *pWindow){
     ren = SDL_CreateRenderer(pWindow, 0, 0);
-    SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
 }
 
 void OSM_DestroyRenderer(){
@@ -142,9 +141,7 @@ void draw_openedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
   if(style != NULL){
 
     int weigth_IN = style->weigth_IN;
-    int weigth_OUT = style->weigth_OUT;
   	RGBA_COLOR *rgb_IN = &style->color_IN;
-  	RGBA_COLOR *rgb_OUT = &style->color_OUT;
 
     double latitude = 0;
     double longitude = 0;
@@ -300,8 +297,8 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *_data){
   printf("X : [%f:%f]\n", lon2x_m(data->bounds->minlon), lon2x_m(data->bounds->maxlon));
 
   // Calcul du ratio permetant une couverture complète de la fenêtre
-  double INTERVAL_X = lon2x_m(data->bounds->maxlon) - lon2x_m(data->bounds->minlon);
-  double INTERVAL_Y = lat2y_m(data->bounds->maxlat) - lat2y_m(data->bounds->minlat);
+  INTERVAL_X = lon2x_m(data->bounds->maxlon) - lon2x_m(data->bounds->minlon);
+  INTERVAL_Y = lat2y_m(data->bounds->maxlat) - lat2y_m(data->bounds->minlat);
 
   double ratio_X = SCREEN_W / INTERVAL_X;
   double ratio_Y = SCREEN_H / INTERVAL_Y;
@@ -309,7 +306,7 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *_data){
   if(ratio_X > ratio_Y) SCALE = ratio_X;
   else SCALE = ratio_Y;
 
-  // Ouverture du fichier de styles
+  /* Ouverture du fichier de styles */
   openStyleSheet("styles.txt");
 
 	/* Création du renderer */
@@ -319,6 +316,7 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *_data){
 }
 
 void RefreshView(){
+  SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
   SDL_RenderClear(ren); // Clear la fenêtre
 
   // Création du tas de priorités min
@@ -332,11 +330,12 @@ void RefreshView(){
     deleteNode(&priority_heap);
   }
 
-/*
+  /*
   // Affichage des relations
   for(int i=0; i < data->nb_relation; i++)
     drawRelation(ren, &data->relations[i]);
-*/
+  */
+
   // Affichage texte ------------------------------
   //SDL_Color black = {0, 0, 0}; 
   //drawTexte(ren, 200, 200, 100, 50, "fonts/times.ttf", 80, "texte", &black);
@@ -377,11 +376,11 @@ double lat2y_m(double lat) { return earth_radius * log(tan(M_PI/4+ deg2rad(lat)/
 double lon2x_m(double lon) { return deg2rad(lon) * earth_radius; }
 
 int lon2x(double lon){
-  return ((lon2x_m(lon) - lon2x_m(data->bounds->minlon)) * SCALE);
+  return (MID_SCR_W + (lon2x_m(lon) - lon2x_m(data->bounds->minlon) - (INTERVAL_X / 2)) * SCALE);
 }
 
 int lat2y(double lat){
-  return (SCREEN_H - ((lat2y_m(lat) - lat2y_m(data->bounds->minlat)) * SCALE)); 
+  return SCREEN_H - (MID_SCR_H + (lat2y_m(lat) - lat2y_m(data->bounds->minlat) - (INTERVAL_Y / 2)) * SCALE);
 }
 
 void _aapolygonRGBA(SDL_Renderer *renderer, const Sint16 *vx, const Sint16 *vy, int n, Uint8 r, Uint8 g, Uint8 b, Uint8 a){
@@ -392,11 +391,11 @@ void _aapolygonRGBA(SDL_Renderer *renderer, const Sint16 *vx, const Sint16 *vy, 
 }
 
 void upScale(){
-  if(SCALE + 0.5 < 10) SCALE = SCALE + 0.5;
+  if(SCALE + 0.1 < 10) SCALE = SCALE + 0.1;
   RefreshView();
 }
 
 void downScale(){
-  if(SCALE - 0.5 > 0.2) SCALE = SCALE - 0.5;
+  if(SCALE - 0.1 > 0.1) SCALE = SCALE - 0.1;
   RefreshView();
 }
