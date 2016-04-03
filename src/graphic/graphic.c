@@ -54,8 +54,13 @@ void openStyleSheet(char *file){
 
       char *key = malloc(64 * sizeof(char));
       char *value = malloc(64 * sizeof(char));
+      char *file_img = malloc(64 * sizeof(char));
+
       strcpy(key, argv[0]);
       strcpy(value, argv[1]);
+      if(argv[9] != NULL) strcpy(file_img, argv[9]);
+      else strcpy(file_img, "");
+
       _dico[i].key = key;
       _dico[i].value = value;
       _dico[i].weigth = atoi(argv[2]);
@@ -63,6 +68,7 @@ void openStyleSheet(char *file){
       RGBA_COLOR color_OUT = {atoi(argv[6]), atoi(argv[7]), atoi(argv[8]), 255};
       _dico[i].color_IN = color_IN;
       _dico[i].color_OUT = color_OUT;
+      _dico[i].file_img = file_img;
       _dico[i].priority = priority;
       priority++;
       i++;
@@ -213,11 +219,6 @@ void draw_closedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
   }
 }
 
-/* Affichage d'un node */
-void drawNode(SDL_Renderer *ren, OSM_Node *node){
-	filledCircleRGBA(ren, lon2x(node->lon), SCREEN_H - lat2y(node->lat), 2, 50, 50, 50, 255);
-}
-
 /* Affichage d'une relation */
 void drawRelation(SDL_Renderer *ren, OSM_Relation *rel){
   char *key = "";
@@ -284,6 +285,40 @@ void drawTexte(SDL_Renderer *ren, int x, int y, int w, int h, char *font, int si
     TTF_CloseFont(font_ttf);
 }
 
+/* Affichage d'un node */
+void drawNode(SDL_Renderer *ren, OSM_Node *node){
+  STYLE_ENTRY *style = NULL;
+  char *key = "";
+  char *value = "";
+
+  if(node->nb_tag > 0){
+    for(int i=0; i<node->nb_tag; i++){
+      key = node->tags[i].k;
+      value = node->tags[i].v;
+      style = getStyleOf(key, value);
+      if(style != NULL) break;
+    }
+
+  /*    
+    if(containTag(&node->tags[0], node->nb_tag, "amenity", "cafe")){
+      style = getStyleOf("amenity", "cafe");
+    }
+*/
+   
+    if(style != NULL){
+      /* Chargement de l'image et affichage */
+      SDL_Surface *image = IMG_Load(style->file_img);
+      if(!image) { printf("[%s] IMG_Load: %s\n", value,IMG_GetError());}
+      SDL_Texture *texture = SDL_CreateTextureFromSurface(ren, image);
+      SDL_Rect dest = { lon2x(node->lon) - (ICON_SIZE/2), lat2y(node->lat) - (ICON_SIZE/2), ICON_SIZE, ICON_SIZE};
+      SDL_RenderCopy(ren,texture,NULL,&dest);
+
+      SDL_DestroyTexture(texture);
+      SDL_FreeSurface(image);
+    }
+  }
+  //filledCircleRGBA(ren, lon2x(node->lon), lat2y(node->lat), 2, 50, 50, 50, 255);
+}
 
 /* Parcours l'ABR et l'affiche */
 void drawOSM_ABR(ABR_Node *tree){
@@ -356,19 +391,9 @@ void RefreshView(){
   //drawTexte(ren, 200, 200, 100, 50, "fonts/times.ttf", 80, "texte", &black);
   //  ----------------------------------------------*/
 
-  //############## IMAGES ##############
-  SDL_Surface *image = IMG_Load("./resources/imgs/icons/library.png");
-  if(!image) {
-    printf("IMG_Load: %s\n", IMG_GetError());
-    // handle error
+  for(int i=0; i<data->nb_node; i++){
+    drawNode(ren, &data->nodes[i]);
   }
-  SDL_Texture *texture = SDL_CreateTextureFromSurface(ren, image);
-  SDL_Rect dest = { SCREEN_W/2 - image->w/2, SCREEN_H/2 - image->h/2, image->w, image->h};
-  SDL_RenderCopy(ren,texture,NULL,&dest);
-
-  SDL_DestroyTexture(texture);
-  SDL_FreeSurface(image);
-  //####################################
 
   SDL_RenderPresent(ren); // Affiche les modifications
 }
@@ -477,4 +502,16 @@ int lineIsOnScreen(int x1, int y1, int x2, int y2){
   if(((x1 >= 0 || x1 <= SCREEN_W) && (x2 >= 0 || x2 <= SCREEN_W)) || ((y1 >= 0 || y1 <= SCREEN_H) && (y2 >= 0 || y2 <= SCREEN_H)))
     return 1;
   else return 0;
+}
+
+/* Test si le node contient le tag */
+int containTag(OSM_Tag *tags, int nb_tag, char *key, char *value){
+  if(nb_tag > 0){
+    for(int i=0; i < nb_tag; i++){
+      if(strcmp(key,tags[i].k) == 0 && strcmp(value,tags[i].v) == 0){
+        return 1;
+      }
+    }
+  }
+  return 0;
 }

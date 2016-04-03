@@ -9,6 +9,7 @@
 
 #define ARGSEP " :\t\n"
 #define DICO_SIZE 1024
+#define ICON_SIZE 15 // pixels de coté
 
 #define deg2rad(d) (((d)*M_PI)/180)
 #define rad2deg(d) (((d)*180)/M_PI)
@@ -27,6 +28,7 @@ typedef struct{
 	int weigth;
 	RGBA_COLOR color_IN;
 	RGBA_COLOR color_OUT;
+	char *file_img;
 	int priority;
 } STYLE_ENTRY;
 
@@ -50,6 +52,7 @@ void _aapolygonRGBA(SDL_Renderer *renderer, const Sint16 *vx, const Sint16 *vy, 
 // Fonctions de tests
 int polyIsOnScreen(Sint16 *vx, Sint16 *vy, int size);
 int lineIsOnScreen(int x1, int y1, int x2, int y2);
+int containTag(OSM_Tag *tags, int nb_tag, char *key, char *value);
 
 // Mercator functions
 double y2lat_m(double y);

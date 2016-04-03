@@ -27,7 +27,7 @@ leisure stadium 2 38 198 134 38 198 134
 waterway river 15 136 189 214 136 189 214
 waterway riverbank 15 186 219 244 186 219 244
 waterway canal 8 136 189 214 136 189 214
-amenity parking 1 255 255 193 220 210 100
+amenity parking 1 255 255 193 220 210 100 resources/imgs/icons/amenity_parking.png
 amenity college 1 236 238 206 216 218 186
 amenity school 1 236 238 206 216 218 186
 building yes 1 210 210 210 130 130 130 
@@ -51,3 +51,13 @@ natural water 1 136 189 214 136 189 214
 barrier wall 1 80 80 80 80 80 80 
 barrier fence 1 170 153 106 170 153 106 
 barrier city_wall 2 80 80 80 80 80 80 
+amenity library 0 0 0 0 0 0 0 resources/imgs/icons/amenity_library.png
+amenity cafe 0 0 0 0 0 0 0 resources/imgs/icons/amenity_cafe.png
+amenity bar 0 0 0 0 0 0 0 resources/imgs/icons/amenity_bar.png
+amenity bbq 0 0 0 0 0 0 0 resources/imgs/icons/amenity_bbq.png
+amenity biergarten 0 0 0 0 0 0 0 resources/imgs/icons/amenity_biergarten.png
+amenity drinking_water 0 0 0 0 0 0 0 resources/imgs/icons/amenity_drinking_water.png
+amenity fast_food 0 0 0 0 0 0 0 resources/imgs/icons/amenity_fast_food.png
+amenity ice_cream 0 0 0 0 0 0 0 resources/imgs/icons/amenity_ice_cream.png
+amenity pub 0 0 0 0 0 0 0 resources/imgs/icons/amenity_pub.png
+amenity restaurant 0 0 0 0 0 0 0 resources/imgs/icons/amenity_restaurant.png
