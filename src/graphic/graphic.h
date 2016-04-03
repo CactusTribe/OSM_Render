@@ -46,6 +46,7 @@ void draw_closedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style);
 void drawNode(SDL_Renderer *ren, OSM_Node *node);
 void drawRelation(SDL_Renderer *ren, OSM_Relation *rel);
 void drawTexte(SDL_Renderer *ren, int x, int y, int w, int h, char *font, int size, char *texte, SDL_Color *color);
+void drawImage(SDL_Renderer *ren, char* file_img, int x, int y);
 void drawOSM_ABR(ABR_Node *tree);
 void _aapolygonRGBA(SDL_Renderer *renderer, const Sint16 *vx, const Sint16 *vy, int n, Uint8 r, Uint8 g, Uint8 b, Uint8 a);
 

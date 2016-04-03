@@ -22,7 +22,7 @@ double INTERVAL_X = 0; // Interval X en metres
 double INTERVAL_Y = 0; // Interval Y en metres
 double INIT_SCALE = 1; // Echelle initiale
 double SCALE = 1; // Echelle courante
-double MOVE = 20; // Valeur de déplacement
+double MOVE = 50; // Valeur de déplacement
 
 // Retourne le style en fonction de la clé
 STYLE_ENTRY* getStyleOf(char *key, char *value){
@@ -191,6 +191,12 @@ void draw_openedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
   }
 }
 
+SDL_Surface *tex_forest = NULL;
+
+void LoadImages(){
+  tex_forest = IMG_Load("resources/imgs/textures/landuse_forest.png");
+  if(!tex_forest) printf("IMG_Load: %s\n", IMG_GetError());
+}
 
 /* Affichage d'une way fermée */
 void draw_closedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
@@ -213,7 +219,14 @@ void draw_closedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
     int onScreen = polyIsOnScreen(vx, vy, nb_nodes);
 
     if(onScreen){
+
+      //printf("[%s]\n", style->key);
       filledPolygonRGBA(ren, vx, vy, nb_nodes, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
+
+      if((strcmp(style->key, "landuse") == 0) && (strcmp(style->value, "forest") == 0)){
+        //texturedPolygon(ren, vx, vy, nb_nodes, tex_forest, 0, 0);
+        //SDL_RenderPresent(ren);
+      }
       _aapolygonRGBA(ren, vx, vy, nb_nodes, rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
     }
   }
@@ -240,7 +253,7 @@ void drawRelation(SDL_Renderer *ren, OSM_Relation *rel){
     }
   }
 
-  if(multipoly == 1){
+  if(style != NULL){
     //printf("multipoly id = %lu\n", rel->id);
     if(style != NULL) printf("  [%s:%s]\n", style->key, style->value);
 
@@ -250,11 +263,22 @@ void drawRelation(SDL_Renderer *ren, OSM_Relation *rel){
         OSM_Way *way = rel->members[i].ref;
 
         if(strcmp(rel->members[i].role, "outer") == 0){
-          draw_closedWay(ren, way, style);
+          //draw_closedWay(ren, way, style);
         }
+        draw_closedWay(ren, way, style);
       }
     }  
 
+    if(containTag(&rel->tags[0], rel->nb_tag, "type", "multipolygon") == 1){
+      for(int i=0; i < rel->nb_member; i++){
+        if(rel->members[i].ref != NULL){
+          OSM_Way *way = rel->members[i].ref;
+
+          drawWay(ren, way);
+        }
+      }  
+    }
+/*
     // Affichage membres INNER
     for(int i=0; i < rel->nb_member; i++){
       if(rel->members[i].ref != NULL){
@@ -264,7 +288,7 @@ void drawRelation(SDL_Renderer *ren, OSM_Relation *rel){
           drawWay(ren, way);
         }
       }
-    }  
+    }  */
   }
 
 }
@@ -285,13 +309,33 @@ void drawTexte(SDL_Renderer *ren, int x, int y, int w, int h, char *font, int si
     TTF_CloseFont(font_ttf);
 }
 
+/* Affiche une image */
+void drawImage(SDL_Renderer *ren, char* file_img, int x, int y){
+  /* Chargement de l'image et affichage */
+  if(strcmp(file_img, "") != 0){
+    SDL_Surface *img = IMG_Load(file_img);
+    if(!img) { printf("IMG_Load: %s\n", IMG_GetError());}
+    if(img != NULL){
+      SDL_Texture *texture = SDL_CreateTextureFromSurface(ren, img);
+      SDL_Rect dest = { x - (ICON_SIZE/2), y - (ICON_SIZE/2), ICON_SIZE, ICON_SIZE};
+      SDL_RenderCopy(ren,texture,NULL,&dest);
+      SDL_DestroyTexture(texture);
+      SDL_FreeSurface(img);
+    }
+  }
+}
+
+
 /* Affichage d'un node */
 void drawNode(SDL_Renderer *ren, OSM_Node *node){
   STYLE_ENTRY *style = NULL;
   char *key = "";
   char *value = "";
 
-  int onScreen = pointIsOnScreen(lon2x(node->lon), lat2y(node->lat));
+  int longitude = lon2x(node->lon);
+  int latitude = lat2y(node->lat);
+
+  int onScreen = pointIsOnScreen(longitude, latitude);
   if(onScreen){
     if(node->nb_tag > 0){
       for(int i=0; i<node->nb_tag; i++){
@@ -301,22 +345,8 @@ void drawNode(SDL_Renderer *ren, OSM_Node *node){
         if(style != NULL) break;
       }
 
-    /*    
-      if(containTag(&node->tags[0], node->nb_tag, "amenity", "cafe")){
-        style = getStyleOf("amenity", "cafe");
-      }
-  */
-     
       if(style != NULL){
-        /* Chargement de l'image et affichage */
-        SDL_Surface *image = IMG_Load(style->file_img);
-        if(!image) { printf("[%s] IMG_Load: %s\n", value,IMG_GetError());}
-        SDL_Texture *texture = SDL_CreateTextureFromSurface(ren, image);
-        SDL_Rect dest = { lon2x(node->lon) - (ICON_SIZE/2), lat2y(node->lat) - (ICON_SIZE/2), ICON_SIZE, ICON_SIZE};
-        SDL_RenderCopy(ren,texture,NULL,&dest);
-
-        SDL_DestroyTexture(texture);
-        SDL_FreeSurface(image);
+        drawImage(ren, style->file_img, longitude, latitude);
       }
     }
   }
@@ -346,14 +376,15 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *_data){
   double ratio_X = SCREEN_W / INTERVAL_X;
   double ratio_Y = SCREEN_H / INTERVAL_Y;
 
-  if(ratio_X > ratio_Y) INIT_SCALE = ratio_X;
-  else INIT_SCALE = ratio_Y;
+  if(ratio_X > ratio_Y) INIT_SCALE = ratio_Y;
+  else INIT_SCALE = ratio_X;
 
   INIT_SCALE = ceil(INIT_SCALE * 10)/10;
   SCALE = INIT_SCALE;
 
   /* Ouverture du fichier de styles */
   openStyleSheet("styles.txt");
+  LoadImages();
 
   // Création du tas de priorités min
   minHeap priority_heap = initMinHeap(data->nb_way);
@@ -377,22 +408,24 @@ void RefreshView(){
   SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
   SDL_RenderClear(ren); // Clear la fenêtre
 
+
+  // Affichage des relations
+  /*
+  for(int i=0; i < data->nb_relation; i++){
+    drawRelation(ren, &data->relations[i]);
+  }*/
+
+
   // Affichage des ways en fonction de leur priorité
   for(int i=0; i<data->nb_way; i++){
     drawWay(ren, _ways_by_prio[i]);
   }
-  
-  /*
-  // Affichage des relations
-  for(int i=0; i < data->nb_relation; i++){
-    drawRelation(ren, &data->relations[i]);
-  }
-  */
-  
+
   // Affichage texte ------------------------------
   //SDL_Color black = {0, 0, 0}; 
   //drawTexte(ren, 200, 200, 100, 50, "fonts/times.ttf", 80, "texte", &black);
   //  ----------------------------------------------*/
+
 
   for(int i=0; i<data->nb_node; i++){
     drawNode(ren, &data->nodes[i]);

@@ -4,7 +4,7 @@ natural heath 1 214 217 159 214 217 159
 natural sand 1 241 229 184 241 229 184
 leisure sports_centre 2 38 198 134 38 198 134
 landuse grass 1 197 236 148 197 236 148 
-landuse forest 1 157 202 138 157 202 138 
+landuse forest 1 157 202 138 157 202 138 resources/imgs/textures/landuse_forest.png
 landuse basin 1 166 198 198 166 198 198 
 landuse brownfield 1 167 168 126 167 168 126 
 landuse industrial 1 230 209 227 230 209 227 
@@ -27,7 +27,7 @@ leisure stadium 2 38 198 134 38 198 134
 waterway river 15 136 189 214 136 189 214
 waterway riverbank 15 186 219 244 186 219 244
 waterway canal 8 136 189 214 136 189 214
-amenity parking 1 255 255 193 220 210 100 resources/imgs/icons/amenity_parking.png
+amenity parking 1 255 255 193 220 210 100
 amenity college 1 236 238 206 216 218 186
 amenity school 1 236 238 206 216 218 186
 building yes 1 210 210 210 130 130 130 
