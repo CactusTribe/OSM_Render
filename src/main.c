@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL2_gfxPrimitives.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_image.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,6 +21,8 @@
 
 #define SCREEN_W 950
 #define SCREEN_H 620
+
+#define FLAGS_IMG (IMG_INIT_JPG|IMG_INIT_PNG)
 
 void Init_SDL();
 void CreateWindow(int w, int h);
@@ -71,6 +74,10 @@ void Init_SDL(){
         fprintf(stdout,"Échec de l'initialisation de la SDL (%s)\n",SDL_GetError());
         exit(1);
     }
+    if((IMG_Init(FLAGS_IMG)&FLAGS_IMG) != FLAGS_IMG) {
+        fprintf(stdout,"Échec de l'initialisation de la SDL_image (%s)\n",IMG_GetError());
+        exit(1); 
+    }
     if (TTF_Init() != 0){
         fprintf(stdout,"Échec de l'initialisation de la SDL_ttf (%s)\n",SDL_GetError());
         exit(1); 
@@ -86,6 +93,7 @@ void CreateWindow(int w, int h){
 void Quit_SDL(){
     TTF_Quit();
     SDL_Quit();
+    IMG_Quit();
 }
 
 void EventsLoop(){
