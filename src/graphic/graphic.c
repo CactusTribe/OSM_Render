@@ -291,30 +291,33 @@ void drawNode(SDL_Renderer *ren, OSM_Node *node){
   char *key = "";
   char *value = "";
 
-  if(node->nb_tag > 0){
-    for(int i=0; i<node->nb_tag; i++){
-      key = node->tags[i].k;
-      value = node->tags[i].v;
-      style = getStyleOf(key, value);
-      if(style != NULL) break;
-    }
+  int onScreen = pointIsOnScreen(lon2x(node->lon), lat2y(node->lat));
+  if(onScreen){
+    if(node->nb_tag > 0){
+      for(int i=0; i<node->nb_tag; i++){
+        key = node->tags[i].k;
+        value = node->tags[i].v;
+        style = getStyleOf(key, value);
+        if(style != NULL) break;
+      }
 
-  /*    
-    if(containTag(&node->tags[0], node->nb_tag, "amenity", "cafe")){
-      style = getStyleOf("amenity", "cafe");
-    }
-*/
-   
-    if(style != NULL){
-      /* Chargement de l'image et affichage */
-      SDL_Surface *image = IMG_Load(style->file_img);
-      if(!image) { printf("[%s] IMG_Load: %s\n", value,IMG_GetError());}
-      SDL_Texture *texture = SDL_CreateTextureFromSurface(ren, image);
-      SDL_Rect dest = { lon2x(node->lon) - (ICON_SIZE/2), lat2y(node->lat) - (ICON_SIZE/2), ICON_SIZE, ICON_SIZE};
-      SDL_RenderCopy(ren,texture,NULL,&dest);
+    /*    
+      if(containTag(&node->tags[0], node->nb_tag, "amenity", "cafe")){
+        style = getStyleOf("amenity", "cafe");
+      }
+  */
+     
+      if(style != NULL){
+        /* Chargement de l'image et affichage */
+        SDL_Surface *image = IMG_Load(style->file_img);
+        if(!image) { printf("[%s] IMG_Load: %s\n", value,IMG_GetError());}
+        SDL_Texture *texture = SDL_CreateTextureFromSurface(ren, image);
+        SDL_Rect dest = { lon2x(node->lon) - (ICON_SIZE/2), lat2y(node->lat) - (ICON_SIZE/2), ICON_SIZE, ICON_SIZE};
+        SDL_RenderCopy(ren,texture,NULL,&dest);
 
-      SDL_DestroyTexture(texture);
-      SDL_FreeSurface(image);
+        SDL_DestroyTexture(texture);
+        SDL_FreeSurface(image);
+      }
     }
   }
   //filledCircleRGBA(ren, lon2x(node->lon), lat2y(node->lat), 2, 50, 50, 50, 255);
@@ -500,6 +503,13 @@ int polyIsOnScreen(Sint16 *vx, Sint16 *vy, int size){
 /* Test la présence d'une ligne dans la fenêtre */
 int lineIsOnScreen(int x1, int y1, int x2, int y2){
   if(((x1 >= 0 || x1 <= SCREEN_W) && (x2 >= 0 || x2 <= SCREEN_W)) || ((y1 >= 0 || y1 <= SCREEN_H) && (y2 >= 0 || y2 <= SCREEN_H)))
+    return 1;
+  else return 0;
+}
+
+/* Test la présence d'un point dans la fenêtre */
+int pointIsOnScreen(int x, int y){
+  if( (x >= 0 || x <= SCREEN_W) && (y >= 0 || y <= SCREEN_H) )
     return 1;
   else return 0;
 }

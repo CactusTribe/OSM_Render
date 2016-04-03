@@ -36,7 +36,7 @@ int terminer = 0;
 int main(int argc, char** argv){
 
   OSM_Data* osmData;
-  getOSM_data("./src/model/exemples/03_paris_ile_saint_louis.osm", &osmData);
+  getOSM_data("./src/model/test2.osm", &osmData);
 
 /*
 	for(int i=0; i< osmData->nb_relation; i++)

@@ -52,6 +52,7 @@ void _aapolygonRGBA(SDL_Renderer *renderer, const Sint16 *vx, const Sint16 *vy, 
 // Fonctions de tests
 int polyIsOnScreen(Sint16 *vx, Sint16 *vy, int size);
 int lineIsOnScreen(int x1, int y1, int x2, int y2);
+int pointIsOnScreen(int x, int y);
 int containTag(OSM_Tag *tags, int nb_tag, char *key, char *value);
 
 // Mercator functions

@@ -51,13 +51,34 @@ natural water 1 136 189 214 136 189 214
 barrier wall 1 80 80 80 80 80 80 
 barrier fence 1 170 153 106 170 153 106 
 barrier city_wall 2 80 80 80 80 80 80 
-amenity library 0 0 0 0 0 0 0 resources/imgs/icons/amenity_library.png
-amenity cafe 0 0 0 0 0 0 0 resources/imgs/icons/amenity_cafe.png
 amenity bar 0 0 0 0 0 0 0 resources/imgs/icons/amenity_bar.png
 amenity bbq 0 0 0 0 0 0 0 resources/imgs/icons/amenity_bbq.png
 amenity biergarten 0 0 0 0 0 0 0 resources/imgs/icons/amenity_biergarten.png
+amenity cafe 0 0 0 0 0 0 0 resources/imgs/icons/amenity_cafe.png
+amenity cinema 0 0 0 0 0 0 0 resources/imgs/icons/amenity_cinema.png
+amenity courthouse 0 0 0 0 0 0 0 resources/imgs/icons/amenity_courthouse.png
+amenity dentist 0 0 0 0 0 0 0 resources/imgs/icons/amenity_dentist.png
+amenity doctor 0 0 0 0 0 0 0 resources/imgs/icons/amenity_doctor.png
 amenity drinking_water 0 0 0 0 0 0 0 resources/imgs/icons/amenity_drinking_water.png
+amenity embassy 0 0 0 0 0 0 0 resources/imgs/icons/amenity_embassy.png
 amenity fast_food 0 0 0 0 0 0 0 resources/imgs/icons/amenity_fast_food.png
+amenity fire_station 0 0 0 0 0 0 0 resources/imgs/icons/amenity_fire_station.png
+amenity hospital 0 0 0 0 0 0 0 resources/imgs/icons/amenity_hospital.png
+amenity hunting 0 0 0 0 0 0 0 resources/imgs/icons/amenity_hunting.png
 amenity ice_cream 0 0 0 0 0 0 0 resources/imgs/icons/amenity_ice_cream.png
+amenity library 0 0 0 0 0 0 0 resources/imgs/icons/amenity_library.png
+amenity nightclub 0 0 0 0 0 0 0 resources/imgs/icons/amenity_nightclub.png
+amenity pharmacy 0 0 0 0 0 0 0 resources/imgs/icons/amenity_pharmacy.png
+amenity police 0 0 0 0 0 0 0 resources/imgs/icons/amenity_police.png
+amenity post_box 0 0 0 0 0 0 0 resources/imgs/icons/amenity_post_box.png
+amenity post_office 0 0 0 0 0 0 0 resources/imgs/icons/amenity_post_office.png
+amenity prison 0 0 0 0 0 0 0 resources/imgs/icons/amenity_prison.png
 amenity pub 0 0 0 0 0 0 0 resources/imgs/icons/amenity_pub.png
+amenity recycling 0 0 0 0 0 0 0 resources/imgs/icons/amenity_recycling.png
 amenity restaurant 0 0 0 0 0 0 0 resources/imgs/icons/amenity_restaurant.png
+amenity social_facility 0 0 0 0 0 0 0 resources/imgs/icons/amenity_social_facility.png
+amenity theatre 0 0 0 0 0 0 0 resources/imgs/icons/amenity_theatre.png
+amenity toilets 0 0 0 0 0 0 0 resources/imgs/icons/amenity_toilets.png
+amenity town_hall 0 0 0 0 0 0 0 resources/imgs/icons/amenity_town_hall.png
+amenity veterinary 0 0 0 0 0 0 0 resources/imgs/icons/amenity_veterinary.png
+amenity waste_basket 0 0 0 0 0 0 0 resources/imgs/icons/amenity_waste_basket.png
