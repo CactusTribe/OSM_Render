@@ -258,7 +258,7 @@ void drawRelation(SDL_Renderer *ren, OSM_Relation *rel){
 
     // Comptage du nombre de membres OUTER et recherche d'un style
     for(int i=0; i < rel->nb_member; i++){
-      if(rel->members[i].ref != NULL){
+      if(rel->members[i].type == OSM_MEMBER_WAY_REF_STRUCT){
         OSM_Way *way = rel->members[i].ref;
 
         if(strcmp(rel->members[i].role, "outer") == 0){
@@ -290,7 +290,7 @@ void drawRelation(SDL_Renderer *ren, OSM_Relation *rel){
       if(relation_style != NULL){
         // Affichage de tout les membres avec le style de la relation
         for(int i=0; i < rel->nb_member; i++){
-          if(rel->members[i].ref != NULL){
+          if(rel->members[i].type == OSM_MEMBER_WAY_REF_STRUCT){
             OSM_Way *way = rel->members[i].ref;
 
             if(strcmp(rel->members[i].role, "outer") == 0)
@@ -302,7 +302,7 @@ void drawRelation(SDL_Renderer *ren, OSM_Relation *rel){
         if(outer_style != NULL){
           // Affichage de tout les membres avec le premier style OUTER trouvé
           for(int i=0; i < rel->nb_member; i++){
-            if(rel->members[i].ref != NULL){
+            if(rel->members[i].type == OSM_MEMBER_WAY_REF_STRUCT){
               OSM_Way *way = rel->members[i].ref;
 
               if(strcmp(rel->members[i].role, "outer") == 0)
@@ -315,7 +315,7 @@ void drawRelation(SDL_Renderer *ren, OSM_Relation *rel){
     else if(nb_outer == 1){ // Si la relation à un seul membre OUTER
       if(relation_style != NULL){
         for(int i=0; i < rel->nb_member; i++){
-          if(rel->members[i].ref != NULL){
+          if(rel->members[i].type == OSM_MEMBER_WAY_REF_STRUCT){
             OSM_Way *way = rel->members[i].ref;
 
             if(strcmp(rel->members[i].role, "outer") == 0)
@@ -325,7 +325,7 @@ void drawRelation(SDL_Renderer *ren, OSM_Relation *rel){
       }
       else{
         for(int i=0; i < rel->nb_member; i++){
-          if(rel->members[i].ref != NULL){
+          if(rel->members[i].type == OSM_MEMBER_WAY_REF_STRUCT){
             OSM_Way *way = rel->members[i].ref;
 
             if(strcmp(rel->members[i].role, "outer") == 0)
@@ -337,7 +337,7 @@ void drawRelation(SDL_Renderer *ren, OSM_Relation *rel){
 
     // AFFICHAGE DES MEMBRES INNER
     for(int i=0; i < rel->nb_member; i++){
-      if(rel->members[i].ref != NULL){
+      if(rel->members[i].type == OSM_MEMBER_WAY_REF_STRUCT){
         OSM_Way *way = rel->members[i].ref;
 
         if(strcmp(rel->members[i].role, "inner") == 0){
