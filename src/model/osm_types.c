@@ -34,7 +34,7 @@ void fprintOSM_Way(FILE* stream, const OSM_Way way){
 
 void fprintOSM_Member(FILE* stream, const OSM_Member member){
 	fprintf(stream, "OSM_Member:\n");
-	switch(member.type & OSM_MEMBER_REF_MASK)
+	switch(member.type & OSM_MEMBER_REF_ID_MASK)
 	{
 		case OSM_MEMBER_WAY_TYPE:
 			fprintf(stream, "\ttype: way\n");
@@ -49,7 +49,7 @@ void fprintOSM_Member(FILE* stream, const OSM_Member member){
 			fprintf(stream, "\ttype: undefined\n");
 		break;
 	}
-	if(member.type & OSM_MEMBER_REF_BIT)
+	if(member.type & OSM_MEMBER_REF_ID_BIT)
 			fprintf(stream, "\tref: id reference\n");
 	else
 			fprintf(stream, "\tref: struct reference\n");

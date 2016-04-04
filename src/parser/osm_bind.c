@@ -148,7 +148,7 @@ OSM_Member bind_OSM_Member(OSM_Data* osm_data, xmlNodePtr node)
 	else
 		osm_member.type = OSM_MEMBER_UNDEFINED_TYPE;
 
-	osm_member.type |= OSM_MEMBER_REF_BIT;
+	osm_member.type |= OSM_MEMBER_REF_ID_BIT;
 	osm_element_id_t* ref = (osm_element_id_t*) malloc( sizeof(osm_element_id_t));
 	*ref	= id;
 	osm_member.ref = (void* ) ref;
@@ -288,13 +288,13 @@ void linkRelationMembers(OSM_Data* osm_data)
 		{
 			OSM_Member* member= & osm_data->relations[i].members[j];
 
-			if( ! (member->type & OSM_MEMBER_REF_BIT) )
+			if( ! (member->type & OSM_MEMBER_REF_ID_BIT) )
 				continue;
 
 			void* ref= NULL;
 			osm_element_id_t id=  *(osm_element_id_t*)member->ref;
 
-			switch(member->type & OSM_MEMBER_REF_MASK)
+			switch(member->type & OSM_MEMBER_REF_ID_MASK)
 			{
 				case OSM_MEMBER_NODE_TYPE:
 					ref= searchNode(osm_data->abr_node, id);
@@ -311,7 +311,7 @@ void linkRelationMembers(OSM_Data* osm_data)
 			{
 				free(member->ref);
 				member->ref= ref;
-				member->type &= OSM_MEMBER_REF_MASK;
+				member->type &= OSM_MEMBER_REF_ID_MASK;
 			}
 		}
 	}
