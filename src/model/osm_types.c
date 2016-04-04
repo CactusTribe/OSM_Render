@@ -34,30 +34,25 @@ void fprintOSM_Way(FILE* stream, const OSM_Way way){
 
 void fprintOSM_Member(FILE* stream, const OSM_Member member){
 	fprintf(stream, "OSM_Member:\n");
-	switch(member.type)
+	switch(member.type & OSM_MEMBER_REF_MASK)
 	{
-		case OSM_MEMBER_NODE: 
-			{ // new scope
-				OSM_Node* node = (OSM_Node*) member.ref;
-				if(node != NULL)
-					fprintf(stream, "\ttype: OSM_Node\n\tref_id: %lu\n", node->id );
-				else
-					fprintf(stream, "\ttype: OSM_Node\n\tref_id: NULL\n");
-			}
+		case OSM_MEMBER_WAY_TYPE:
+			fprintf(stream, "\ttype: way\n");
 		break;
-		case OSM_MEMBER_WAY: 
-			{ // new scope
-				OSM_Way* way = (OSM_Way*) member.ref;
-				if(way != NULL)
-					fprintf(stream, "\ttype: OSM_Way\n\tref_id: %lu\n", way->id );
-				else
-					fprintf(stream, "\ttype: OSM_Way\n\tref_id: NULL\n");
-			} 
+		case OSM_MEMBER_NODE_TYPE:
+			fprintf(stream, "\ttype: node\n");
+		break;
+		case OSM_MEMBER_RELATION_TYPE:
+			fprintf(stream, "\ttype: relation\n");
 		break;
 		default:
-			fprintf(stream, "\ttype: undefined\n\tref_id: undefined\n");
+			fprintf(stream, "\ttype: undefined\n");
 		break;
 	}
+	if(member.type & OSM_MEMBER_REF_BIT)
+			fprintf(stream, "\tref: id reference\n");
+	else
+			fprintf(stream, "\tref: struct reference\n");
 	fprintf(stream, "\trole: %s\n", member.role );
 }
 

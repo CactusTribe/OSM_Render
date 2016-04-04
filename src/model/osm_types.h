@@ -3,25 +3,29 @@
 
 #include "OSM_ABR.h"
 
-#define OSM_IS_PRINTED						0x01
-#define OSM_NOT_PRINTED						0x00
+#define OSM_IS_PRINTED									0x01
+#define OSM_NOT_PRINTED									0x00
 
-#define OSM_MEMBER_WAY_TYPE				0x01
-#define OSM_MEMBER_NODE_TYPE			0x02
-#define OSM_MEMBER_RELATION_TYPE	0x03
+#define OSM_MEMBER_WAY_TYPE							0x01
+#define OSM_MEMBER_NODE_TYPE						0x02
+#define OSM_MEMBER_RELATION_TYPE				0x03
+#define OSM_MEMBER_UNDEFINED_TYPE				0x08
 
-#define OSM_MEMBER_WAY_STR 			"way"
-#define OSM_MEMBER_NODE_STR			"node" 
-#define OSM_MEMBER_RELATION_STR	"relation" 
+#define OSM_MEMBER_WAY_STR 							"way"
+#define OSM_MEMBER_NODE_STR							"node" 
+#define OSM_MEMBER_RELATION_STR					"relation" 
 
-#define OSM_MEMBER_REF_MASK				0x80
+#define OSM_MEMBER_REF_BIT							(0x80)
+#define OSM_MEMBER_REF_MASK							(~OSM_MEMBER_REF_BIT)
 
-#define OSM_MEMBER_WAY 					OSM_MEMBER_WAY_TYPE 			^ OSM_MEMBER_REF_MASK
-#define OSM_MEMBER_WAY_ID 			OSM_MEMBER_WAY_TYPE 			| OSM_MEMBER_REF_MASK 
-#define OSM_MEMBER_NODE 				OSM_MEMBER_NODE_TYPE 			^ OSM_MEMBER_REF_MASK
-#define OSM_MEMBER_NODE_ID 			OSM_MEMBER_NODE_TYPE			| OSM_MEMBER_REF_MASK 
-#define OSM_MEMBER_RELATION 		OSM_MEMBER_RELATION_TYPE	^ OSM_MEMBER_REF_MASK
-#define OSM_MEMBER_RELATION_ID 	OSM_MEMBER_RELATION_TYPE	| OSM_MEMBER_REF_MASK 
+#define OSM_MEMBER_WAY_REF_STRUCT				(OSM_MEMBER_WAY_TYPE 			& OSM_MEMBER_REF_MASK		)
+#define OSM_MEMBER_WAY_REF_ID 					(OSM_MEMBER_WAY_TYPE 			| OSM_MEMBER_REF_BIT 		)
+#define OSM_MEMBER_NODE_REF_STRUCT			(OSM_MEMBER_NODE_TYPE 			& OSM_MEMBER_REF_MASK	)
+#define OSM_MEMBER_NODE_REF_ID 					(OSM_MEMBER_NODE_TYPE			| OSM_MEMBER_REF_BIT 		)
+#define OSM_MEMBER_RELATION_REF_STRUCT	(OSM_MEMBER_RELATION_TYPE	& OSM_MEMBER_REF_MASK		)
+#define OSM_MEMBER_RELATION_REF_ID			(OSM_MEMBER_RELATION_TYPE	| OSM_MEMBER_REF_BIT 		)
+
+typedef unsigned long int osm_element_id_t; 
 
 typedef struct{
 	double minlat;
@@ -36,7 +40,7 @@ typedef struct{
 } OSM_Tag;
 
 typedef struct{
-	unsigned long int id;
+	osm_element_id_t 	id;
 	double 						lat;
 	double 						lon;
 	unsigned char 		visible;
@@ -46,7 +50,7 @@ typedef struct{
 } OSM_Node;
 
 typedef struct{
-	unsigned long int id;
+	osm_element_id_t 	id;
 	unsigned char  		visible;
 	unsigned char 		printed;
 	unsigned int 			nb_node;
@@ -62,7 +66,7 @@ typedef struct{
 } OSM_Member;
 
 typedef struct{
-	unsigned long int id;
+	osm_element_id_t 	id;
 	unsigned char 		visible;
 	unsigned char 		printed;
 	unsigned int 			nb_member;
@@ -84,6 +88,8 @@ typedef struct{
 	// relations
 	unsigned int 	nb_relation;
 	OSM_Relation*	relations;
+	ABR_Node* 		abr_relation;
+
 }	OSM_Data;
 
 extern void fprintOSM_Bounds(FILE* stream, const OSM_Bounds bounds);
