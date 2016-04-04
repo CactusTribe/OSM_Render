@@ -2,9 +2,9 @@ natural coastline 1 136 189 214 136 189 214
 natural grassland 1 198 228 180 198 228 180
 natural heath 1 214 217 159 214 217 159
 natural sand 1 241 229 184 241 229 184
-leisure sports_centre 2 38 198 134 38 198 134
-landuse grass 1 197 236 148 197 236 148 
+natural water 1 136 189 214 136 189 214
 landuse forest 1 157 202 138 157 202 138 resources/imgs/textures/landuse_forest.png
+landuse grass 1 197 236 148 197 236 148 
 landuse basin 1 166 198 198 166 198 198 
 landuse brownfield 1 167 168 126 167 168 126 
 landuse industrial 1 230 209 227 230 209 227 
@@ -21,11 +21,12 @@ landuse recreation_ground 1 197 236 148 197 236 148
 landuse meadow 1 207 236 168 207 236 168 
 landuse pasture 1 207 236 168 207 236 168
 landuse residential 1 218 218 218 218 218 218
+leisure sports_centre 2 38 198 134 38 198 134
 leisure park 2 205 247 201 180 210 180 
 leisure pitch 2 138 211 175 101 166 125 
 leisure garden 2 207 236 168 207 236 168 
 leisure stadium 2 38 198 134 38 198 134
-leisure track 2 38 198 134 38 198 134
+leisure track 2 138 211 175 38 198 134
 waterway river 15 136 189 214 136 189 214
 waterway riverbank 15 186 219 244 186 219 244
 waterway canal 8 136 189 214 136 189 214
@@ -42,14 +43,13 @@ highway footway 1 255 144 138 255 144 138
 highway cycleway 1 157 156 246 157 156 246
 highway pedestrian 5 223 220 234 168 166 167
 highway living_street 5 237 238 237 197 197 197 
-highway service 5 230 230 230 174 174 174 
-highway residential 5 230 230 230 174 174 174
-highway unclassified 8 230 230 230 174 174 174 
-highway tertiary 15 230 230 230 174 174 174 
+highway service 5 245 245 245 174 174 174 
+highway residential 5 245 245 245 174 174 174
+highway unclassified 8 245 245 245 174 174 174 
+highway tertiary 15 255 255 179 174 174 174 
 highway secondary 15 243 254 181 117 144 0 
 highway primary 15 254 216 155 176 124 0 
 highway primary_link 15 254 216 155 176 124 0 
-natural water 1 136 189 214 136 189 214
 barrier wall 1 80 80 80 80 80 80 
 barrier fence 1 170 153 106 170 153 106 
 barrier city_wall 2 80 80 80 80 80 80 

@@ -239,122 +239,126 @@ void drawRelation(SDL_Renderer *ren, OSM_Relation *rel){
   STYLE_ENTRY *outer_style = NULL;
   int nb_outer = 0;
 
-  // Si c'est une relation de type multipolygon
-  if(containTag(&rel->tags[0], rel->nb_tag, "type", "multipolygon") == 1 || containTag(&rel->tags[0], rel->nb_tag, "type", "boundary") == 1){
-    printf("%s\n", "--------------------------------------");
-    printf(" RELATION <%lu> MEMBERS <%d>\n", rel->id, rel->nb_member);
+  if(relationIsComplete(rel)){
+    // Si c'est une relation de type multipolygon
+    if(containTag(&rel->tags[0], rel->nb_tag, "type", "multipolygon") == 1 || containTag(&rel->tags[0], rel->nb_tag, "type", "boundary") == 1){
+      //printf("%s\n", "--------------------------------------");
+      //printf(" RELATION <%lu> MEMBERS <%d>\n", rel->id, rel->nb_member);
 
-    // On récupère le style de la relation si il existe
-    for(int i=0; i < rel->nb_tag; i++){
-      key = rel->tags[i].k;
-      value = rel->tags[i].v;
+      // On récupère le style de la relation si il existe
+      for(int i=0; i < rel->nb_tag; i++){
+        key = rel->tags[i].k;
+        value = rel->tags[i].v;
 
-      relation_style = getStyleOf(key, value);
-      if(relation_style != NULL){
-        printf(" STYLE [%s:%s]\n", key, value);
-        break;
+        relation_style = getStyleOf(key, value);
+        if(relation_style != NULL){
+          break;
+        }
       }
-    }
 
-    // Comptage du nombre de membres OUTER et recherche d'un style
-    for(int i=0; i < rel->nb_member; i++){
-      if(rel->members[i].type == OSM_MEMBER_WAY_REF_STRUCT){
-        OSM_Way *way = rel->members[i].ref;
+      // Comptage du nombre de membres OUTER et recherche d'un style
+      for(int i=0; i < rel->nb_member; i++){
+        if(rel->members[i].type == OSM_MEMBER_WAY_REF_STRUCT){
+          OSM_Way *way = rel->members[i].ref;
 
-        if(strcmp(rel->members[i].role, "outer") == 0){
-          // Si il n'y a pas de styles encore défini pour les OUTER
-          if(outer_style == NULL){
-            // Recherche d'un tag de style
-            for(int j=0; j < way->nb_tag; j++){
-              outer_style = getStyleOf(way->tags[j].k, way->tags[j].v);
-              if(outer_style != NULL) break;
+          if(strcmp(rel->members[i].role, "outer") == 0){
+            // Si il n'y a pas de styles encore défini pour les OUTER
+            if(outer_style == NULL){
+              // Recherche d'un tag de style
+              for(int j=0; j < way->nb_tag; j++){
+                outer_style = getStyleOf(way->tags[j].k, way->tags[j].v);
+                if(outer_style != NULL) break;
+              }
             }
+            nb_outer++;
           }
-          nb_outer++;
-        }
-        
-        if(outer_style != NULL)
-          printf("  -> <%lu> [%s:%s] (%s)\n", way->id, outer_style->key, outer_style->value, rel->members[i].role);
-        else
-          printf("  -> <%lu> [:] (%s)\n", way->id, rel->members[i].role);
-      }
-    }
-
-    if(relation_style != NULL) printf("STYLE Relation = [%s:%s]\n", relation_style->key, relation_style->value);
-    if(outer_style != NULL) printf("STYLE Outer = [%s:%s]\n", outer_style->key, outer_style->value);
-
-    // AFFICHAGE DES MEMBRES OUTER
-
-    // Si la relation à plusieurs membres OUTER
-    if(nb_outer > 1){
-      if(relation_style != NULL){
-        // Affichage de tout les membres avec le style de la relation
-        for(int i=0; i < rel->nb_member; i++){
-          if(rel->members[i].type == OSM_MEMBER_WAY_REF_STRUCT){
-            OSM_Way *way = rel->members[i].ref;
-
-            if(strcmp(rel->members[i].role, "outer") == 0)
-              draw_closedWay(ren, way, relation_style);
-          }
+          
+          /*
+          if(outer_style != NULL)
+            printf("  -> <%lu> [%s:%s] (%s)\n", way->id, outer_style->key, outer_style->value, rel->members[i].role);
+          else
+            printf("  -> <%lu> [:] (%s)\n", way->id, rel->members[i].role);
+          */
         }
       }
-      else{
-        if(outer_style != NULL){
-          // Affichage de tout les membres avec le premier style OUTER trouvé
+
+      //if(relation_style != NULL) printf("STYLE Relation = [%s:%s]\n", relation_style->key, relation_style->value);
+      //if(outer_style != NULL) printf("STYLE Outer = [%s:%s]\n", outer_style->key, outer_style->value);
+
+      // AFFICHAGE DES MEMBRES OUTER
+
+      // Si la relation à plusieurs membres OUTER
+      if(nb_outer > 1){
+        if(relation_style != NULL){
+          // Affichage de tout les membres avec le style de la relation
           for(int i=0; i < rel->nb_member; i++){
             if(rel->members[i].type == OSM_MEMBER_WAY_REF_STRUCT){
               OSM_Way *way = rel->members[i].ref;
 
               if(strcmp(rel->members[i].role, "outer") == 0)
-                draw_closedWay(ren, way, outer_style);
+                draw_closedWay(ren, way, relation_style);
+            }
+          }
+        }
+        else{
+          if(outer_style != NULL){
+            // Affichage de tout les membres avec le premier style OUTER trouvé
+            for(int i=0; i < rel->nb_member; i++){
+              if(rel->members[i].ref != NULL){
+                OSM_Way *way = rel->members[i].ref;
+
+                if(strcmp(rel->members[i].role, "outer") == 0)
+                  draw_closedWay(ren, way, outer_style);
+              }
             }
           }
         }
       }
-    }
-    else if(nb_outer == 1){ // Si la relation à un seul membre OUTER
-      if(relation_style != NULL){
-        for(int i=0; i < rel->nb_member; i++){
-          if(rel->members[i].type == OSM_MEMBER_WAY_REF_STRUCT){
-            OSM_Way *way = rel->members[i].ref;
+      else if(nb_outer == 1){ // Si la relation à un seul membre OUTER
+        if(relation_style != NULL){
+          for(int i=0; i < rel->nb_member; i++){
+            if(rel->members[i].type == OSM_MEMBER_WAY_REF_STRUCT){
+              OSM_Way *way = rel->members[i].ref;
 
-            if(strcmp(rel->members[i].role, "outer") == 0)
-              draw_closedWay(ren, way, relation_style);
+              if(strcmp(rel->members[i].role, "outer") == 0)
+                draw_closedWay(ren, way, relation_style);
+            }
+          }
+        }
+        else{
+          for(int i=0; i < rel->nb_member; i++){
+            if(rel->members[i].type == OSM_MEMBER_WAY_REF_STRUCT){
+              OSM_Way *way = rel->members[i].ref;
+
+
+              if(strcmp(rel->members[i].role, "outer") == 0)
+                drawWay(ren, way);
+            }
           }
         }
       }
-      else{
-        for(int i=0; i < rel->nb_member; i++){
-          if(rel->members[i].type == OSM_MEMBER_WAY_REF_STRUCT){
-            OSM_Way *way = rel->members[i].ref;
 
-            if(strcmp(rel->members[i].role, "outer") == 0)
+      // AFFICHAGE DES MEMBRES INNER
+      for(int i=0; i < rel->nb_member; i++){
+        if(rel->members[i].ref != NULL){
+          OSM_Way *way = rel->members[i].ref;
+
+          if(strcmp(rel->members[i].role, "inner") == 0){
+            if(outer_style != NULL){
+              if(strcmp(outer_style->key, "building") == 0)
+                draw_closedWay(ren, way, getStyleOf("landuse", "residential"));
+              else
+                drawWay(ren, way);
+            }
+            else{
               drawWay(ren, way);
+            }
           }
         }
       }
+
+      //printf("%s\n", "--------------------------------------");
     }
-
-    // AFFICHAGE DES MEMBRES INNER
-    for(int i=0; i < rel->nb_member; i++){
-      if(rel->members[i].type == OSM_MEMBER_WAY_REF_STRUCT){
-        OSM_Way *way = rel->members[i].ref;
-
-        if(strcmp(rel->members[i].role, "inner") == 0){
-          if(outer_style != NULL){
-            if(strcmp(outer_style->key, "building") == 0)
-              draw_closedWay(ren, way, getStyleOf("landuse", "residential"));
-            else
-              drawWay(ren, way);
-          }
-          else{
-            drawWay(ren, way);
-          }
-        }
-      }
-    }
-
-    printf("%s\n", "--------------------------------------");
   }
 }
 
@@ -470,29 +474,28 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *_data){
 }
 
 void RefreshView(){
-  SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
+  SDL_SetRenderDrawColor(ren, 232, 229, 223, 255);
   SDL_RenderClear(ren); // Clear la fenêtre
 
-
-  // Affichage des relations
-  for(int i=0; i < data->nb_relation; i++){
-    drawRelation(ren, &data->relations[i]);
-  }
 
   // Affichage des ways en fonction de leur priorité
   for(int i=0; i<data->nb_way; i++){
     drawWay(ren, _ways_by_prio[i]);
   }
 
-  // Affichage texte ------------------------------
-  //SDL_Color black = {0, 0, 0}; 
-  //drawTexte(ren, 200, 200, 100, 50, "fonts/times.ttf", 80, "texte", &black);
-  //  ----------------------------------------------*/
+  // Affichage des relations
+  for(int i=0; i < data->nb_relation; i++){
+    drawRelation(ren, &data->relations[i]);
+  }
 
   for(int i=0; i<data->nb_node; i++){
     drawNode(ren, &data->nodes[i]);
   }
 
+  // Affichage texte ------------------------------
+  //SDL_Color black = {0, 0, 0}; 
+  //drawTexte(ren, 200, 200, 100, 50, "fonts/times.ttf", 80, "texte", &black);
+  //  ----------------------------------------------*/
 
   SDL_RenderPresent(ren); // Affiche les modifications
 }
@@ -554,7 +557,7 @@ void upScale(){
 
 /* Diminue l'échelle */
 void downScale(){
-  if(SCALE - 0.1 >= INIT_SCALE) SCALE = SCALE - 0.1;
+  if(SCALE - 0.1 >= 0.1) SCALE = SCALE - 0.1;
   RefreshView();
 }
 
@@ -620,4 +623,13 @@ int containTag(OSM_Tag *tags, int nb_tag, char *key, char *value){
     }
   }
   return 0;
+}
+
+/* Test si la relation ne contient pas de membres NULL*/
+int relationIsComplete(OSM_Relation *rel){
+  for(int i=0; i < rel->nb_member; i++){
+    if(strcmp(rel->members[i].role, "outer") == 0 && rel->members[i].ref == NULL)
+      return 0;
+  }
+  return 1;
 }

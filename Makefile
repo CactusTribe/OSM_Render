@@ -28,7 +28,7 @@ $(OBJ_FILES): $(BIN_DIR)/%.o : $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) -c -o $@ $^
 
 run:
-	$(EXEC_FILE)
+	$(EXEC_FILE) ${map}
 
 clean:
 	rm -rf $(BIN_DIR)/*
