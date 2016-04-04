@@ -106,6 +106,7 @@ OSM_Node bind_OSM_Node(xmlNodePtr node)
 
 	osm_node.nb_tag = countChildrenTag(node);
 	osm_node.tags		= getTagList(node);
+	osm_node.printed= OSM_NOT_PRINTED;
 	return osm_node;
 }
 
@@ -122,6 +123,7 @@ OSM_Way bind_OSM_Way(OSM_Data* osm_data, xmlNodePtr node)
 	osm_way.nodes		= getRefNodeList(osm_data, node);
 	osm_way.nb_tag 	= countChildrenTag(node);
 	osm_way.tags		= getTagList(node);
+	osm_way.printed	= OSM_NOT_PRINTED;
 	return osm_way;
 }
 
@@ -164,6 +166,8 @@ OSM_Relation bind_OSM_Relation(OSM_Data* osm_data, xmlNodePtr node)
 	osm_relation.members		=	getMemberList(osm_data, node);
 	osm_relation.nb_tag			=	countChildrenTag(node);
 	osm_relation.tags				=	getTagList(node);
+	osm_relation.printed		= OSM_NOT_PRINTED;
+
 	return osm_relation;
 }
 
