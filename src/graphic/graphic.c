@@ -278,7 +278,7 @@ void drawRelation(SDL_Renderer *ren, OSM_Relation *rel){
             printf("  -> <%lu> [%s:%s] (%s)\n", way->id, outer_style->key, outer_style->value, rel->members[i].role);
           else
             printf("  -> <%lu> [:] (%s)\n", way->id, rel->members[i].role);
-            */
+          */
         }
       }
 
@@ -490,7 +490,6 @@ void RefreshView(){
   for(int i=0; i<data->nb_node; i++){
     drawNode(ren, &data->nodes[i]);
   }
-
 
   // Affichage texte ------------------------------
   //SDL_Color black = {0, 0, 0}; 
