@@ -38,26 +38,12 @@ int main(int argc, char** argv){
   OSM_Data* osmData;
   getOSM_data("exemples/03_paris_ile_saint_louis.osm", &osmData);
 
-
-/*
-	for(int i=0; i< osmData->nb_relation; i++)
-	{
-            printf("\n\n\n");
-			printOSM_Relation(osmData->relations[i]);
-
-
-		for(int j=0; j< osmData->relations[i].nb_member; j++) 
-		{
-			printOSM_Member(osmData->relations[i].members[j]);
-		}
-	}
-*/
   // ################# AFFICHAGE ##################
 
-    /* Initialisation */
-    Init_SDL();
-    /* Création de la fenêtre */
-    CreateWindow(SCREEN_W, SCREEN_H);
+  /* Initialisation */
+  Init_SDL();
+  /* Création de la fenêtre */
+  CreateWindow(SCREEN_W, SCREEN_H);
 	/* Rendu OSM */
 	OSM_Rendering(pWindow, SCREEN_W, SCREEN_H, osmData);
 	/* Boucle d'évenements */
