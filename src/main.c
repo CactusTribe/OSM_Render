@@ -34,9 +34,13 @@ SDL_Event evenements;
 int terminer = 0;
 
 int main(int argc, char** argv){
+    if(argc != 2){
+        fprintf(stderr, "%s\n", "Usage: make ARGS=\"file\" run");
+        exit(1);
+    }
 
-  OSM_Data* osmData;
-  getOSM_data("exemples/03_paris_ile_saint_louis.osm", &osmData);
+    OSM_Data* osmData;
+    getOSM_data("exemples/03_paris_ile_saint_louis.osm", &osmData);
 
 
 /*

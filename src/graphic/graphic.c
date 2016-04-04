@@ -470,7 +470,7 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *_data){
 }
 
 void RefreshView(){
-  SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
+  SDL_SetRenderDrawColor(ren, 232, 229, 223, 255);
   SDL_RenderClear(ren); // Clear la fenêtre
 
 
