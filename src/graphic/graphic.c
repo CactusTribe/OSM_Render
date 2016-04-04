@@ -186,8 +186,8 @@ void draw_openedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
         else
           aalineRGBA(ren, x, y, x_suiv, y_suiv, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
       }
-
     }
+    //printf("* draw_openedWay <%lu> [%s:%s] *\n", way->id, style->key, style->value);
   }
 }
 
@@ -205,7 +205,7 @@ void draw_closedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
   	RGBA_COLOR *rgb_IN = &style->color_IN;
     RGBA_COLOR *rgb_OUT = &style->color_OUT;
 
-  	int nb_nodes = (way->nb_node)-1;
+  	int nb_nodes = (way->nb_node);
   	short vx[nb_nodes];
   	short vy[nb_nodes];
 
@@ -219,8 +219,6 @@ void draw_closedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
     int onScreen = polyIsOnScreen(vx, vy, nb_nodes);
 
     if(onScreen){
-
-      //printf("[%s]\n", style->key);
       filledPolygonRGBA(ren, vx, vy, nb_nodes, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
 
       if((strcmp(style->key, "landuse") == 0) && (strcmp(style->value, "forest") == 0)){
@@ -229,6 +227,7 @@ void draw_closedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
       }
       _aapolygonRGBA(ren, vx, vy, nb_nodes, rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
     }
+    //printf("* draw_closedWay <%lu> [%s:%s] *\n", way->id, style->key, style->value);
   }
 }
 
@@ -236,61 +235,127 @@ void draw_closedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
 void drawRelation(SDL_Renderer *ren, OSM_Relation *rel){
   char *key = "";
   char *value = "";
-  STYLE_ENTRY *style = NULL;
-  int multipoly = 0;
+  STYLE_ENTRY *relation_style = NULL;
+  STYLE_ENTRY *outer_style = NULL;
+  int nb_outer = 0;
 
-  if(rel->nb_tag > 0){
+  // Si c'est une relation de type multipolygon
+  if(containTag(&rel->tags[0], rel->nb_tag, "type", "multipolygon") == 1 || containTag(&rel->tags[0], rel->nb_tag, "type", "boundary") == 1){
+    printf("%s\n", "--------------------------------------");
+    printf(" RELATION <%lu> MEMBERS <%d>\n", rel->id, rel->nb_member);
+
+    // On récupère le style de la relation si il existe
     for(int i=0; i < rel->nb_tag; i++){
       key = rel->tags[i].k;
       value = rel->tags[i].v;
 
-      //printf("[%s:%s]\n", key, value);
-      if(style == NULL)
-        style = getStyleOf(key, value);
-
-      if(strcmp(key, "type") == 0 && strcmp(value, "multipolygon") == 0) 
-        multipoly = 1;
+      relation_style = getStyleOf(key, value);
+      if(relation_style != NULL){
+        printf(" STYLE [%s:%s]\n", key, value);
+        break;
+      }
     }
-  }
 
-  if(style != NULL){
-    //printf("multipoly id = %lu\n", rel->id);
-    if(style != NULL) printf("  [%s:%s]\n", style->key, style->value);
-
-    // Affichage membres OUTER
+    // Comptage du nombre de membres OUTER et recherche d'un style
     for(int i=0; i < rel->nb_member; i++){
       if(rel->members[i].ref != NULL){
         OSM_Way *way = rel->members[i].ref;
 
         if(strcmp(rel->members[i].role, "outer") == 0){
-          //draw_closedWay(ren, way, style);
+          // Si il n'y a pas de styles encore défini pour les OUTER
+          if(outer_style == NULL){
+            // Recherche d'un tag de style
+            for(int j=0; j < way->nb_tag; j++){
+              outer_style = getStyleOf(way->tags[j].k, way->tags[j].v);
+              if(outer_style != NULL) break;
+            }
+          }
+          nb_outer++;
         }
-        draw_closedWay(ren, way, style);
+        
+        if(outer_style != NULL)
+          printf("  -> <%lu> [%s:%s] (%s)\n", way->id, outer_style->key, outer_style->value, rel->members[i].role);
+        else
+          printf("  -> <%lu> [:] (%s)\n", way->id, rel->members[i].role);
       }
-    }  
-
-    if(containTag(&rel->tags[0], rel->nb_tag, "type", "multipolygon") == 1){
-      for(int i=0; i < rel->nb_member; i++){
-        if(rel->members[i].ref != NULL){
-          OSM_Way *way = rel->members[i].ref;
-
-          drawWay(ren, way);
-        }
-      }  
     }
-/*
-    // Affichage membres INNER
+
+    if(relation_style != NULL) printf("STYLE Relation = [%s:%s]\n", relation_style->key, relation_style->value);
+    if(outer_style != NULL) printf("STYLE Outer = [%s:%s]\n", outer_style->key, outer_style->value);
+
+    // AFFICHAGE DES MEMBRES OUTER
+
+    // Si la relation à plusieurs membres OUTER
+    if(nb_outer > 1){
+      if(relation_style != NULL){
+        // Affichage de tout les membres avec le style de la relation
+        for(int i=0; i < rel->nb_member; i++){
+          if(rel->members[i].ref != NULL){
+            OSM_Way *way = rel->members[i].ref;
+
+            if(strcmp(rel->members[i].role, "outer") == 0)
+              draw_closedWay(ren, way, relation_style);
+          }
+        }
+      }
+      else{
+        if(outer_style != NULL){
+          // Affichage de tout les membres avec le premier style OUTER trouvé
+          for(int i=0; i < rel->nb_member; i++){
+            if(rel->members[i].ref != NULL){
+              OSM_Way *way = rel->members[i].ref;
+
+              if(strcmp(rel->members[i].role, "outer") == 0)
+                draw_closedWay(ren, way, outer_style);
+            }
+          }
+        }
+      }
+    }
+    else if(nb_outer == 1){ // Si la relation à un seul membre OUTER
+      if(relation_style != NULL){
+        for(int i=0; i < rel->nb_member; i++){
+          if(rel->members[i].ref != NULL){
+            OSM_Way *way = rel->members[i].ref;
+
+            if(strcmp(rel->members[i].role, "outer") == 0)
+              draw_closedWay(ren, way, relation_style);
+          }
+        }
+      }
+      else{
+        for(int i=0; i < rel->nb_member; i++){
+          if(rel->members[i].ref != NULL){
+            OSM_Way *way = rel->members[i].ref;
+
+            if(strcmp(rel->members[i].role, "outer") == 0)
+              drawWay(ren, way);
+          }
+        }
+      }
+    }
+
+    // AFFICHAGE DES MEMBRES INNER
     for(int i=0; i < rel->nb_member; i++){
       if(rel->members[i].ref != NULL){
         OSM_Way *way = rel->members[i].ref;
 
         if(strcmp(rel->members[i].role, "inner") == 0){
-          drawWay(ren, way);
+          if(outer_style != NULL){
+            if(strcmp(outer_style->key, "building") == 0)
+              draw_closedWay(ren, way, getStyleOf("landuse", "residential"));
+            else
+              drawWay(ren, way);
+          }
+          else{
+            drawWay(ren, way);
+          }
         }
       }
-    }  */
-  }
+    }
 
+    printf("%s\n", "--------------------------------------");
+  }
 }
 
 /* Affichage d'une surface texte */
@@ -410,11 +475,9 @@ void RefreshView(){
 
 
   // Affichage des relations
-  /*
   for(int i=0; i < data->nb_relation; i++){
     drawRelation(ren, &data->relations[i]);
-  }*/
-
+  }
 
   // Affichage des ways en fonction de leur priorité
   for(int i=0; i<data->nb_way; i++){
@@ -426,10 +489,10 @@ void RefreshView(){
   //drawTexte(ren, 200, 200, 100, 50, "fonts/times.ttf", 80, "texte", &black);
   //  ----------------------------------------------*/
 
-
   for(int i=0; i<data->nb_node; i++){
     drawNode(ren, &data->nodes[i]);
   }
+
 
   SDL_RenderPresent(ren); // Affiche les modifications
 }

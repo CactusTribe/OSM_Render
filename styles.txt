@@ -8,6 +8,7 @@ landuse forest 1 157 202 138 157 202 138 resources/imgs/textures/landuse_forest.
 landuse basin 1 166 198 198 166 198 198 
 landuse brownfield 1 167 168 126 167 168 126 
 landuse industrial 1 230 209 227 230 209 227 
+landuse military 1 240 209 203 240 209 203 
 landuse reservoir 1 166 198 198 166 198 198 
 landuse village_green 1 197 236 148 197 236 148 
 landuse farmyard 1 234 204 164 234 204 164 
@@ -24,13 +25,14 @@ leisure park 2 205 247 201 180 210 180
 leisure pitch 2 138 211 175 101 166 125 
 leisure garden 2 207 236 168 207 236 168 
 leisure stadium 2 38 198 134 38 198 134
+leisure track 2 38 198 134 38 198 134
 waterway river 15 136 189 214 136 189 214
 waterway riverbank 15 186 219 244 186 219 244
 waterway canal 8 136 189 214 136 189 214
 amenity parking 1 255 255 193 220 210 100
 amenity college 1 236 238 206 216 218 186
 amenity school 1 236 238 206 216 218 186
-building yes 1 210 210 210 130 130 130 
+building yes 1 205 199 188 175 169 158 
 building church 1 205 183 136 170 153 106 
 railway tram 9 69 69 69 69 69 69
 highway bridleway 1 65 182 87 65 182 87
