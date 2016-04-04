@@ -242,8 +242,8 @@ void drawRelation(SDL_Renderer *ren, OSM_Relation *rel){
   if(relationIsComplete(rel)){
     // Si c'est une relation de type multipolygon
     if(containTag(&rel->tags[0], rel->nb_tag, "type", "multipolygon") == 1 || containTag(&rel->tags[0], rel->nb_tag, "type", "boundary") == 1){
-      printf("%s\n", "--------------------------------------");
-      printf(" RELATION <%lu> MEMBERS <%d>\n", rel->id, rel->nb_member);
+      //printf("%s\n", "--------------------------------------");
+      //printf(" RELATION <%lu> MEMBERS <%d>\n", rel->id, rel->nb_member);
 
       // On récupère le style de la relation si il existe
       for(int i=0; i < rel->nb_tag; i++){
@@ -252,7 +252,6 @@ void drawRelation(SDL_Renderer *ren, OSM_Relation *rel){
 
         relation_style = getStyleOf(key, value);
         if(relation_style != NULL){
-          printf(" STYLE [%s:%s]\n", key, value);
           break;
         }
       }
@@ -274,15 +273,17 @@ void drawRelation(SDL_Renderer *ren, OSM_Relation *rel){
             nb_outer++;
           }
           
+          /*
           if(outer_style != NULL)
             printf("  -> <%lu> [%s:%s] (%s)\n", way->id, outer_style->key, outer_style->value, rel->members[i].role);
           else
             printf("  -> <%lu> [:] (%s)\n", way->id, rel->members[i].role);
+            */
         }
       }
 
-      if(relation_style != NULL) printf("STYLE Relation = [%s:%s]\n", relation_style->key, relation_style->value);
-      if(outer_style != NULL) printf("STYLE Outer = [%s:%s]\n", outer_style->key, outer_style->value);
+      //if(relation_style != NULL) printf("STYLE Relation = [%s:%s]\n", relation_style->key, relation_style->value);
+      //if(outer_style != NULL) printf("STYLE Outer = [%s:%s]\n", outer_style->key, outer_style->value);
 
       // AFFICHAGE DES MEMBRES OUTER
 
@@ -355,7 +356,7 @@ void drawRelation(SDL_Renderer *ren, OSM_Relation *rel){
         }
       }
 
-      printf("%s\n", "--------------------------------------");
+      //printf("%s\n", "--------------------------------------");
     }
   }
 }
@@ -476,14 +477,14 @@ void RefreshView(){
   SDL_RenderClear(ren); // Clear la fenêtre
 
 
-  // Affichage des relations
-  for(int i=0; i < data->nb_relation; i++){
-    drawRelation(ren, &data->relations[i]);
-  }
-
   // Affichage des ways en fonction de leur priorité
   for(int i=0; i<data->nb_way; i++){
     drawWay(ren, _ways_by_prio[i]);
+  }
+
+  // Affichage des relations
+  for(int i=0; i < data->nb_relation; i++){
+    drawRelation(ren, &data->relations[i]);
   }
 
   // Affichage texte ------------------------------
@@ -627,7 +628,7 @@ int containTag(OSM_Tag *tags, int nb_tag, char *key, char *value){
 /* Test si la relation ne contient pas de membres NULL*/
 int relationIsComplete(OSM_Relation *rel){
   for(int i=0; i < rel->nb_member; i++){
-    if(rel->members[i].ref == NULL)
+    if(strcmp(rel->members[i].role, "outer") == 0 && rel->members[i].ref == NULL)
       return 0;
   }
   return 1;
