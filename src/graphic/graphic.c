@@ -478,16 +478,17 @@ void RefreshView(){
   SDL_RenderClear(ren); // Clear la fenêtre
 
 
-  // Affichage des ways en fonction de leur priorité
-  for(int i=0; i<data->nb_way; i++){
-    drawWay(ren, _ways_by_prio[i]);
-  }
-
   // Affichage des relations
   for(int i=0; i < data->nb_relation; i++){
     drawRelation(ren, &data->relations[i]);
   }
 
+  // Affichage des ways en fonction de leur priorité
+  for(int i=0; i<data->nb_way; i++){
+    drawWay(ren, _ways_by_prio[i]);
+  }
+
+  // Affichage des nodes
   for(int i=0; i<data->nb_node; i++){
     drawNode(ren, &data->nodes[i]);
   }
