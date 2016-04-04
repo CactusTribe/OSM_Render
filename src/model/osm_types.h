@@ -3,13 +3,25 @@
 
 #include "OSM_ABR.h"
 
+#define OSM_IS_PRINTED						0x01
+#define OSM_NOT_PRINTED						0x00
 
-#define OSM_MEMBER_WAY 			0
-#define OSM_MEMBER_WAY_STR 	"way"
+#define OSM_MEMBER_WAY_TYPE				0x01
+#define OSM_MEMBER_NODE_TYPE			0x02
+#define OSM_MEMBER_RELATION_TYPE	0x03
 
-#define OSM_MEMBER_NODE 		1
-#define OSM_MEMBER_NODE_STR	"node" 
+#define OSM_MEMBER_WAY_STR 			"way"
+#define OSM_MEMBER_NODE_STR			"node" 
+#define OSM_MEMBER_RELATION_STR	"relation" 
 
+#define OSM_MEMBER_REF_MASK				0x80
+
+#define OSM_MEMBER_WAY 					OSM_MEMBER_WAY_TYPE 			^ OSM_MEMBER_REF_MASK
+#define OSM_MEMBER_WAY_ID 			OSM_MEMBER_WAY_TYPE 			| OSM_MEMBER_REF_MASK 
+#define OSM_MEMBER_NODE 				OSM_MEMBER_NODE_TYPE 			^ OSM_MEMBER_REF_MASK
+#define OSM_MEMBER_NODE_ID 			OSM_MEMBER_NODE_TYPE			| OSM_MEMBER_REF_MASK 
+#define OSM_MEMBER_RELATION 		OSM_MEMBER_RELATION_TYPE	^ OSM_MEMBER_REF_MASK
+#define OSM_MEMBER_RELATION_ID 	OSM_MEMBER_RELATION_TYPE	| OSM_MEMBER_REF_MASK 
 
 typedef struct{
 	double minlat;
@@ -25,50 +37,53 @@ typedef struct{
 
 typedef struct{
 	unsigned long int id;
-	double lat;
-	double lon;
-	int visible;
-	int nb_tag;
-	OSM_Tag *tags;
+	double 						lat;
+	double 						lon;
+	unsigned char 		visible;
+	unsigned char 		printed;
+	unsigned int 			nb_tag;
+	OSM_Tag *					tags;
 } OSM_Node;
 
 typedef struct{
 	unsigned long int id;
-	int visible;
-	int nb_node;
-	OSM_Node** nodes;
-	int nb_tag;
-	OSM_Tag* tags;
+	unsigned char  		visible;
+	unsigned char 		printed;
+	unsigned int 			nb_node;
+	OSM_Node** 				nodes;
+	unsigned int 			nb_tag;
+	OSM_Tag* 					tags;
 } OSM_Way;
 
 typedef struct{
-	void* ref;
+	void* 				ref;
 	unsigned char type;
-	char* role;
+	char* 				role;
 } OSM_Member;
 
 typedef struct{
 	unsigned long int id;
-	int visible;
-	int nb_member;
-	OSM_Member* members;
-	int nb_tag;
-	OSM_Tag* tags;
+	unsigned char 		visible;
+	unsigned char 		printed;
+	unsigned int 			nb_member;
+	OSM_Member* 			members;
+	unsigned int 			nb_tag;
+	OSM_Tag* 					tags;
 } OSM_Relation;
 
 typedef struct{
 	OSM_Bounds* bounds;
 	// nodes
-	int nb_node;
-	OSM_Node* nodes;
-	ABR_Node* abr_node;
+	unsigned int 	nb_node;
+	OSM_Node* 		nodes;
+	ABR_Node* 		abr_node;
 	// ways
-	int nb_way;
-	OSM_Way* ways;
-	ABR_Node* abr_way;
+	unsigned int	nb_way;
+	OSM_Way* 			ways;
+	ABR_Node* 		abr_way;
 	// relations
-	int nb_relation;
-	OSM_Relation* relations;
+	unsigned int 	nb_relation;
+	OSM_Relation*	relations;
 }	OSM_Data;
 
 extern void fprintOSM_Bounds(FILE* stream, const OSM_Bounds bounds);
