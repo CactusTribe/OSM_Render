@@ -131,7 +131,7 @@ OSM_Member bind_OSM_Member(OSM_Data* osm_data, xmlNodePtr node)
 {
 	OSM_Member osm_member;
 	char* member_type;
-	long int id;
+	unsigned long int id;
 
 	FOREACH_ALL_ATTR
 		ATTR_BINDING_STRING(&member_type, "type")
@@ -140,15 +140,19 @@ OSM_Member bind_OSM_Member(OSM_Data* osm_data, xmlNodePtr node)
 	END_FOREACH_ALL_ATTR
 
 	if(strcmp(member_type, OSM_MEMBER_NODE_STR) == 0)
-	{
-		osm_member.type = OSM_MEMBER_NODE;
-		osm_member.ref 	= searchNode(osm_data->abr_node, id);
-	}
+		osm_member.type = OSM_MEMBER_NODE_TYPE;
+	else if (strcmp(member_type, OSM_MEMBER_WAY_STR) == 0)
+		osm_member.type = OSM_MEMBER_WAY_TYPE;
+	else if (strcmp(member_type, OSM_MEMBER_RELATION_STR) == 0)
+		osm_member.type = OSM_MEMBER_RELATION_TYPE;
 	else
-	{
-		osm_member.type = OSM_MEMBER_WAY;
-		osm_member.ref	= searchNode(osm_data->abr_way, id);
-	}
+		osm_member.type = OSM_MEMBER_UNDEFINED_TYPE;
+
+	osm_member.type |= OSM_MEMBER_REF_BIT;
+	osm_element_id_t* ref = (osm_element_id_t*) malloc( sizeof(osm_element_id_t));
+	*ref	= id;
+	osm_member.ref = (void* ) ref;
+	
 	return osm_member;
 }
 
@@ -274,5 +278,42 @@ OSM_Relation* getRelationList(OSM_Data* osm_data, osmParserDataSetPtr data)
 		*current= bind_OSM_Relation(osm_data,  getXmlNodeByIndex(data, i) );
 	}
 	return list;
+}
+
+void linkRelationMembers(OSM_Data* osm_data)
+{
+	for(int i=0; i< osm_data->nb_relation; i++)
+	{
+		for(int j=0; j< osm_data->relations[i].nb_member; j++) 
+		{
+			OSM_Member* member= & osm_data->relations[i].members[j];
+
+			if( ! (member->type & OSM_MEMBER_REF_BIT) )
+				continue;
+
+			void* ref= NULL;
+			osm_element_id_t id=  *(osm_element_id_t*)member->ref;
+
+			switch(member->type & OSM_MEMBER_REF_MASK)
+			{
+				case OSM_MEMBER_NODE_TYPE:
+					ref= searchNode(osm_data->abr_node, id);
+				break;
+				case OSM_MEMBER_WAY_TYPE:
+					ref= searchNode(osm_data->abr_way, id);
+				break;
+				case OSM_MEMBER_RELATION_TYPE:
+					ref= searchNode(osm_data->abr_relation, id);
+				break;
+			}
+
+			if(ref)
+			{
+				free(member->ref);
+				member->ref= ref;
+				member->type &= OSM_MEMBER_REF_MASK;
+			}
+		}
+	}
 }
 

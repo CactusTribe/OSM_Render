@@ -149,6 +149,7 @@ parser_error_t getOSM_data(const char* filename, OSM_Data** dataOut)
 	OSM_Data* data= (OSM_Data*) malloc(sizeof(OSM_Data));
 	data->abr_node = NULL;
 	data->abr_way = NULL;
+	data->abr_relation = NULL;
 
 	error= open_OSM_ParserFile(filename, &osmFile);
 	if(error != PARSER_SUCESS)
@@ -195,6 +196,13 @@ parser_error_t getOSM_data(const char* filename, OSM_Data** dataOut)
 	data->nb_relation = getDataSet_lenght(osmDataSet);
 	data->relations = getRelationList(data, osmDataSet);
 	freeDataSet(osmDataSet);
+
+	// === Relation ABR === 
+	for(int i= 0; i < data->nb_relation; i++){
+		addNode(&data->abr_relation, data->relations[i].id, &data->relations[i]);
+	}
+
+	linkRelationMembers(data);
 
 	*dataOut = data;
 

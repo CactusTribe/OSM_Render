@@ -26,5 +26,6 @@ OSM_Node**		getRefNodeList		(OSM_Data* osm_data, xmlNodePtr node);
 OSM_Member*  	getMemberList			(OSM_Data* osm_data, xmlNodePtr node);
 OSM_Tag* 			getTagList				(xmlNodePtr node);
 
+void linkRelationMembers(OSM_Data* osm_data);
 
 #endif /* _OSM_BIND_H_ */
