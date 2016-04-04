@@ -487,15 +487,15 @@ void RefreshView(){
     drawRelation(ren, &data->relations[i]);
   }
 
-  // Affichage texte ------------------------------
-  //SDL_Color black = {0, 0, 0}; 
-  //drawTexte(ren, 200, 200, 100, 50, "fonts/times.ttf", 80, "texte", &black);
-  //  ----------------------------------------------*/
-
   for(int i=0; i<data->nb_node; i++){
     drawNode(ren, &data->nodes[i]);
   }
 
+
+  // Affichage texte ------------------------------
+  //SDL_Color black = {0, 0, 0}; 
+  //drawTexte(ren, 200, 200, 100, 50, "fonts/times.ttf", 80, "texte", &black);
+  //  ----------------------------------------------*/
 
   SDL_RenderPresent(ren); // Affiche les modifications
 }
@@ -557,7 +557,7 @@ void upScale(){
 
 /* Diminue l'échelle */
 void downScale(){
-  if(SCALE - 0.1 >= INIT_SCALE) SCALE = SCALE - 0.1;
+  if(SCALE - 0.1 >= 0.1) SCALE = SCALE - 0.1;
   RefreshView();
 }
 
