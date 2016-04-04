@@ -42,9 +42,9 @@ highway footway 1 255 144 138 255 144 138
 highway cycleway 1 157 156 246 157 156 246
 highway pedestrian 5 223 220 234 168 166 167
 highway living_street 5 237 238 237 197 197 197 
-highway service 5 230 230 230 174 174 174 
-highway residential 5 230 230 230 174 174 174
-highway unclassified 8 230 230 230 174 174 174 
+highway service 5 245 245 245 174 174 174 
+highway residential 5 245 245 245 174 174 174
+highway unclassified 8 245 245 245 174 174 174 
 highway tertiary 15 255 255 179 174 174 174 
 highway secondary 15 243 254 181 117 144 0 
 highway primary 15 254 216 155 176 124 0 

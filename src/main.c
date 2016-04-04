@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <unistd.h>
 
 #include <libxml/parser.h>
 #include <libxml/xpath.h>
@@ -35,27 +36,18 @@ int terminer = 0;
 
 int main(int argc, char** argv){
     if(argc != 2){
-        fprintf(stderr, "%s\n", "Usage: make ARGS=\"file\" run");
+        fprintf(stderr, "%s\n", "Usage: make run map=file ");
+        exit(1);
+    }
+
+    if(access(argv[1], F_OK ) != 0){
+        fprintf(stderr, "ERREUR : Le fichier n'existe pas.\n");
         exit(1);
     }
 
     OSM_Data* osmData;
-    getOSM_data("exemples/03_paris_ile_saint_louis.osm", &osmData);
+    getOSM_data(argv[1], &osmData);
 
-
-/*
-	for(int i=0; i< osmData->nb_relation; i++)
-	{
-            printf("\n\n\n");
-			printOSM_Relation(osmData->relations[i]);
-
-
-		for(int j=0; j< osmData->relations[i].nb_member; j++) 
-		{
-			printOSM_Member(osmData->relations[i].members[j]);
-		}
-	}
-*/
   // ################# AFFICHAGE ##################
 
     /* Initialisation */
