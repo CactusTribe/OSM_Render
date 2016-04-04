@@ -628,7 +628,7 @@ int containTag(OSM_Tag *tags, int nb_tag, char *key, char *value){
 /* Test si la relation ne contient pas de membres NULL*/
 int relationIsComplete(OSM_Relation *rel){
   for(int i=0; i < rel->nb_member; i++){
-    if(strcmp(rel->members[i].role, "outer") == 0 && rel->members[i].ref == NULL)
+    if(strcmp(rel->members[i].role, "outer") == 0 && rel->members[i].type & OSM_MEMBER_REF_ID_BIT)
       return 0;
   }
   return 1;
