@@ -130,6 +130,8 @@ void drawWay(SDL_Renderer *ren, OSM_Way *way){
     if(strcmp(key, "highway") == 0 || strcmp(key, "railway") == 0 || strcmp(key, "waterway") == 0|| strcmp(key, "barrier") == 0){
       if(strcmp(value, "riverbank") == 0)
         draw_closedWay(ren, way, style);
+      else if(containTag(&way->tags[0], way->nb_tag, "area", "yes") == 1)
+        draw_closedWay(ren, way, style);
       else
         draw_openedWay(ren, way, style);
     }
@@ -139,6 +141,8 @@ void drawWay(SDL_Renderer *ren, OSM_Way *way){
     else if(strcmp(key, "amenity") == 0){
       if(strcmp(value, "parking") == 0 || strcmp(value, "school") == 0 || strcmp(value, "college") == 0) 
         draw_closedWay(ren, way, style);
+      if(strcmp(value, "fountain") == 0)
+        draw_closedWay(ren, way, getStyleOf("natural", "water"));
     }   
   }
 }
@@ -174,12 +178,9 @@ void draw_openedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
       int onScreen = lineIsOnScreen(x, y, x_suiv, y_suiv);
 
       // Si la portion de route est dans la fenêtre on l'affiche
-      if(onScreen){
-
-        if(i > 0 && i < (way->nb_node)-1){
-          if(weigth >= 2)
-            filledCircleRGBA(ren, x, y, ((weigth * SCALE)/2), rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
-        }
+      if(onScreen){        
+        if(weigth >= 2)
+          filledCircleRGBA(ren, x, y, ((weigth * SCALE)/2), rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
 
         if(weigth >= 2)
           thickLineRGBA(ren, x, y, x_suiv, y_suiv, (weigth * SCALE), rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
@@ -219,20 +220,21 @@ void draw_closedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
     int onScreen = polyIsOnScreen(vx, vy, nb_nodes);
 
     if(onScreen){
-      filledPolygonRGBA(ren, vx, vy, nb_nodes, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
+      filledPolygonRGBA(ren, vx, vy, nb_nodes, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);  
 
       if((strcmp(style->key, "landuse") == 0) && (strcmp(style->value, "forest") == 0)){
         //texturedPolygon(ren, vx, vy, nb_nodes, tex_forest, 0, 0);
         //SDL_RenderPresent(ren);
       }
+        
       _aapolygonRGBA(ren, vx, vy, nb_nodes, rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
     }
     //printf("* draw_closedWay <%lu> [%s:%s] *\n", way->id, style->key, style->value);
   }
 }
 
-/* Affichage d'une relation */
-void drawRelation(SDL_Renderer *ren, OSM_Relation *rel){
+/* Affichage des membres OUTER d'une relation */
+void drawRelationOuter(SDL_Renderer *ren, OSM_Relation *rel){
   char *key = "";
   char *value = "";
   STYLE_ENTRY *relation_style = NULL;
@@ -330,9 +332,38 @@ void drawRelation(SDL_Renderer *ren, OSM_Relation *rel){
             if(rel->members[i].type == OSM_MEMBER_WAY_REF_STRUCT){
               OSM_Way *way = rel->members[i].ref;
 
-
               if(strcmp(rel->members[i].role, "outer") == 0)
                 drawWay(ren, way);
+            }
+          }
+        }
+      }
+      //printf("%s\n", "--------------------------------------");
+    }
+  }
+}
+
+/* Affichage des membres INNER d'une relation */
+void drawRelationInner(SDL_Renderer *ren, OSM_Relation *rel){
+  STYLE_ENTRY *outer_style = NULL;
+
+  if(relationIsComplete(rel)){
+    // Si c'est une relation de type multipolygon
+    if(containTag(&rel->tags[0], rel->nb_tag, "type", "multipolygon") == 1 || containTag(&rel->tags[0], rel->nb_tag, "type", "boundary") == 1){
+
+      // Recherche d'un style OUTER
+      for(int i=0; i < rel->nb_member; i++){
+        if(rel->members[i].type == OSM_MEMBER_WAY_REF_STRUCT){
+          OSM_Way *way = rel->members[i].ref;
+
+          if(strcmp(rel->members[i].role, "outer") == 0){
+            // Si il n'y a pas de styles encore défini pour les OUTER
+            if(outer_style == NULL){
+              // Recherche d'un tag de style
+              for(int j=0; j < way->nb_tag; j++){
+                outer_style = getStyleOf(way->tags[j].k, way->tags[j].v);
+                if(outer_style != NULL) break;
+              }
             }
           }
         }
@@ -357,7 +388,6 @@ void drawRelation(SDL_Renderer *ren, OSM_Relation *rel){
         }
       }
 
-      //printf("%s\n", "--------------------------------------");
     }
   }
 }
@@ -445,8 +475,8 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *_data){
   double ratio_X = SCREEN_W / INTERVAL_X;
   double ratio_Y = SCREEN_H / INTERVAL_Y;
 
-  if(ratio_X > ratio_Y) INIT_SCALE = ratio_Y;
-  else INIT_SCALE = ratio_X;
+  if(ratio_X > ratio_Y) INIT_SCALE = ratio_X;
+  else INIT_SCALE = ratio_Y;
 
   INIT_SCALE = ceil(INIT_SCALE * 10)/10;
   SCALE = INIT_SCALE;
@@ -477,15 +507,19 @@ void RefreshView(){
   SDL_SetRenderDrawColor(ren, 232, 229, 223, 255);
   SDL_RenderClear(ren); // Clear la fenêtre
 
-
-  // Affichage des relations
+  // Affichage des membres OUTTER des relations
   for(int i=0; i < data->nb_relation; i++){
-    drawRelation(ren, &data->relations[i]);
+    drawRelationOuter(ren, &data->relations[i]);
   }
 
   // Affichage des ways en fonction de leur priorité
   for(int i=0; i<data->nb_way; i++){
     drawWay(ren, _ways_by_prio[i]);
+  }
+
+  // Affichage des membres INNER des relations
+  for(int i=0; i < data->nb_relation; i++){
+    drawRelationInner(ren, &data->relations[i]);
   }
 
   // Affichage des nodes
