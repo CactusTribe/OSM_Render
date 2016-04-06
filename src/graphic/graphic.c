@@ -136,7 +136,16 @@ void drawWay(SDL_Renderer *ren, OSM_Way *way){
         draw_openedWay(ren, way, style);
     }
     else if(strcmp(key, "building") == 0 || strcmp(key, "natural") == 0 || strcmp(key, "landuse") == 0 || strcmp(key, "leisure") == 0){
-      draw_closedWay(ren, way, style);
+      if(strcmp(value, "coastline") == 0){
+        STYLE_ENTRY *water = getStyleOf("natural", "water");
+        RGBA_COLOR *rgb_IN = &water->color_IN;
+        short vx[4] = {-10, SCREEN_W+10, SCREEN_W+10, -10};
+        short vy[4] = {-10, -10, SCREEN_H+10, SCREEN_H+10};
+        filledPolygonRGBA(ren, vx, vy, 4, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
+        draw_closedWay(ren, way, style);
+      }
+      else
+        draw_closedWay(ren, way, style);
     }
     else if(strcmp(key, "amenity") == 0){
       if(strcmp(value, "parking") == 0 || strcmp(value, "school") == 0 || strcmp(value, "college") == 0) 
@@ -506,6 +515,7 @@ void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *_data){
 void RefreshView(){
   SDL_SetRenderDrawColor(ren, 232, 229, 223, 255);
   SDL_RenderClear(ren); // Clear la fenêtre
+
 
   // Affichage des membres OUTTER des relations
   for(int i=0; i < data->nb_relation; i++){
