@@ -97,6 +97,7 @@ void freeDico(){
   for(int i=0; i<DICO_SIZE; i++){
     free(_dico[i].key);
     free(_dico[i].value);
+    free(_dico[i].file_img);
   }
 }
 
