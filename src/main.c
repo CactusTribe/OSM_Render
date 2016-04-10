@@ -50,10 +50,10 @@ int main(int argc, char** argv){
 
   // ################# AFFICHAGE ##################
 
-  /* Initialisation */
-  Init_SDL();
-  /* Création de la fenêtre */
-  CreateWindow(SCREEN_W, SCREEN_H);
+    /* Initialisation */
+    Init_SDL();
+    /* Création de la fenêtre */
+    CreateWindow(SCREEN_W, SCREEN_H);
 	/* Rendu OSM */
 	OSM_Rendering(pWindow, SCREEN_W, SCREEN_H, osmData);
 	/* Boucle d'évenements */
@@ -126,7 +126,7 @@ void EventsLoop(){
     
         }
 
-        OSM_DestroyRenderer();
+        DestroyRenderer();
         SDL_DestroyWindow(pWindow);
     }
     else{

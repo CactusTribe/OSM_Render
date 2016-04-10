@@ -4,14 +4,12 @@
 #include <math.h>
 #include <stdio.h>
 #include "graphic.h"
+#include "graphic_tools.h"
 #include "../model/minHeap.h"
 
 SDL_Renderer *ren = NULL;
 OSM_Data *data = NULL;
 OSM_Way **_ways_by_prio = NULL;
-
-STYLE_ENTRY _dico[DICO_SIZE] = {};
-int NB_STYLES = 0;
 
 /* Paramètres de la vue */
 int SCREEN_W = 0; // Largeur de l'écran
@@ -24,88 +22,91 @@ double INIT_SCALE = 1; // Echelle initiale
 double SCALE = 1; // Echelle courante
 double MOVE = 50; // Valeur de déplacement
 
-// Retourne le style en fonction de la clé
-STYLE_ENTRY* getStyleOf(char *key, char *value){
-	for(int i=0; i<NB_STYLES; i++){
-		if(strcmp(key, _dico[i].key) == 0 && strcmp(value, _dico[i].value) == 0){
-			return &_dico[i];
-		}
-	}
-	return NULL;
-}
-
-/* Ouvre la feuille de style et construit le dico */
-void openStyleSheet(char *file){
-  FILE* f = fopen(file, "r");
-
-  if(f != NULL){
-    char buff[1024];
-
-    while(fgets(buff, sizeof(buff), f) != NULL){
-      NB_STYLES++;
-    } rewind(f);
-
-    int i = 0;
-    char* argv[64];
-    int priority = 0;
-
-    while(fgets(buff, sizeof(buff), f) != NULL){
-      tokenize_command(buff, argv);
-
-      char *key = malloc(64 * sizeof(char));
-      char *value = malloc(64 * sizeof(char));
-      char *file_img = malloc(64 * sizeof(char));
-
-      strcpy(key, argv[0]);
-      strcpy(value, argv[1]);
-      if(argv[9] != NULL) strcpy(file_img, argv[9]);
-      else strcpy(file_img, "");
-
-      _dico[i].key = key;
-      _dico[i].value = value;
-      _dico[i].weigth = atoi(argv[2]);
-      RGBA_COLOR color_IN = {atoi(argv[3]), atoi(argv[4]), atoi(argv[5]), 255};
-      RGBA_COLOR color_OUT = {atoi(argv[6]), atoi(argv[7]), atoi(argv[8]), 255};
-      _dico[i].color_IN = color_IN;
-      _dico[i].color_OUT = color_OUT;
-      _dico[i].file_img = file_img;
-      _dico[i].priority = priority;
-      priority++;
-      i++;
-    }
-  }
-  else{
-    fprintf(stderr, "%s\n", "Erreur lors de l'ouverture du fichier.");
-  }
-}
-
-/* Sépare une ligne en arguments */
-int tokenize_command(char* argl, char** argv) {
-  int i;
-  argv[0] = strtok(argl, ARGSEP);
-  for (i = 0; argv[i] != NULL; ++i)
-      argv[i+1] = strtok(NULL, ARGSEP);
-  return i;
-}
-
-/* Libère le dictionnaire de styles */
-void freeDico(STYLE_ENTRY *dico){
-  for(int i=0; i<DICO_SIZE; i++){
-    free(_dico[i].key);
-    free(_dico[i].value);
-  }
-}
-
 /* Création du render */
 void CreateRenderer(SDL_Window *pWindow){
     ren = SDL_CreateRenderer(pWindow, 0, SDL_RENDERER_ACCELERATED);
 }
 
 /* Destruction du render */
-void OSM_DestroyRenderer(){
+void DestroyRenderer(){
   free(_ways_by_prio);
-  freeDico(_dico);
+  freeDico();
   SDL_DestroyRenderer(ren);
+}
+
+/* Initialisation de la vue et des paramètres */
+void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *_data){
+  data = _data;
+  SCREEN_W = w;
+  SCREEN_H = h;
+  REF_X = SCREEN_W / 2;
+  REF_Y = SCREEN_H / 2;
+
+  // Calcul du ratio permetant une couverture complète de la fenêtre
+  INTERVAL_X = lon2x_m(data->bounds->maxlon) - lon2x_m(data->bounds->minlon);
+  INTERVAL_Y = lat2y_m(data->bounds->maxlat) - lat2y_m(data->bounds->minlat);
+
+  double ratio_X = SCREEN_W / INTERVAL_X;
+  double ratio_Y = SCREEN_H / INTERVAL_Y;
+
+  if(ratio_X > ratio_Y) INIT_SCALE = ratio_X;
+  else INIT_SCALE = ratio_Y;
+
+  INIT_SCALE = ceil(INIT_SCALE * 10)/10;
+  SCALE = INIT_SCALE;
+
+  /* Ouverture du fichier de styles */
+  openStyleSheet("styles.txt");
+
+  // Création du tas de priorités min
+  minHeap priority_heap = initMinHeap(data->nb_way);
+  CreateHeapPriority(&priority_heap, data);
+
+  // Remplissage de la liste dans l'ordre de priorité
+  _ways_by_prio = malloc(data->nb_way * sizeof(OSM_Way*));
+
+  for(int i=0; i<data->nb_way; i++){
+    _ways_by_prio[i] = getHead(&priority_heap);
+    deleteNode(&priority_heap);
+  }
+  deleteMinHeap(&priority_heap);
+
+  /* Création du renderer */
+  CreateRenderer(pWindow);
+  RefreshView();
+}
+
+void RefreshView(){
+  SDL_SetRenderDrawColor(ren, 232, 229, 223, 255);
+  SDL_RenderClear(ren); // Clear la fenêtre
+
+
+  // Affichage des membres OUTTER des relations
+  for(int i=0; i < data->nb_relation; i++){
+    drawRelationOuter(ren, &data->relations[i]);
+  }
+
+  // Affichage des ways en fonction de leur priorité
+  for(int i=0; i<data->nb_way; i++){
+    drawWay(ren, _ways_by_prio[i]);
+  }
+
+  // Affichage des membres INNER des relations
+  for(int i=0; i < data->nb_relation; i++){
+    drawRelationInner(ren, &data->relations[i]);
+  }
+
+  // Affichage des nodes
+  for(int i=0; i<data->nb_node; i++){
+    drawNode(ren, &data->nodes[i]);
+  }
+
+  // Affichage texte ------------------------------
+  //SDL_Color black = {0, 0, 0}; 
+  //drawTexte(ren, 200, 200, 100, 50, "fonts/times.ttf", 80, "texte", &black);
+  //  ----------------------------------------------*/
+
+  SDL_RenderPresent(ren); // Affiche les modifications
 }
 
 
@@ -160,7 +161,6 @@ void drawWay(SDL_Renderer *ren, OSM_Way *way){
 /* Affichage d'une way ouverte */
 void draw_openedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
   if(style != NULL){
-
     int weigth = style->weigth;
   	RGBA_COLOR *rgb_IN = &style->color_IN;
 
@@ -173,19 +173,15 @@ void draw_openedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
 
       latitude = way->nodes[i]->lat;
       longitude = way->nodes[i]->lon;
-
       x = lon2x(longitude);
       y = lat2y(latitude); 
 
       latitude = way->nodes[i+1]->lat;
       longitude = way->nodes[i+1]->lon;
-
       x_suiv = lon2x(longitude);
       y_suiv = lat2y(latitude);
 
-
-      int onScreen = lineIsOnScreen(x, y, x_suiv, y_suiv);
-
+      int onScreen = lineIsOnScreen(x, y, x_suiv, y_suiv, SCREEN_W, SCREEN_H);
       // Si la portion de route est dans la fenêtre on l'affiche
       if(onScreen){        
         if(weigth >= 2)
@@ -199,13 +195,6 @@ void draw_openedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
     }
     //printf("* draw_openedWay <%lu> [%s:%s] *\n", way->id, style->key, style->value);
   }
-}
-
-SDL_Surface *tex_forest = NULL;
-
-void LoadImages(){
-  tex_forest = IMG_Load("resources/imgs/textures/landuse_forest.png");
-  if(!tex_forest) printf("IMG_Load: %s\n", IMG_GetError());
 }
 
 /* Affichage d'une way fermée */
@@ -226,16 +215,10 @@ void draw_closedWay(SDL_Renderer *ren, OSM_Way *way, STYLE_ENTRY *style){
       vy[i] = lat2y(nd->lat);   
   	}
 
-    int onScreen = polyIsOnScreen(vx, vy, nb_nodes);
+    int onScreen = polyIsOnScreen(vx, vy, nb_nodes, SCREEN_W, SCREEN_H);
 
     if(onScreen){
-      filledPolygonRGBA(ren, vx, vy, nb_nodes, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);  
-
-      if((strcmp(style->key, "landuse") == 0) && (strcmp(style->value, "forest") == 0)){
-        //texturedPolygon(ren, vx, vy, nb_nodes, tex_forest, 0, 0);
-        //SDL_RenderPresent(ren);
-      }
-        
+      filledPolygonRGBA(ren, vx, vy, nb_nodes, rgb_IN->r, rgb_IN->g, rgb_IN->b, rgb_IN->a);
       _aapolygonRGBA(ren, vx, vy, nb_nodes, rgb_OUT->r, rgb_OUT->g, rgb_OUT->b, rgb_OUT->a);
     }
     //printf("* draw_closedWay <%lu> [%s:%s] *\n", way->id, style->key, style->value);
@@ -283,20 +266,13 @@ void drawRelationOuter(SDL_Renderer *ren, OSM_Relation *rel){
             }
             nb_outer++;
           }
-          
-          /*
-          if(outer_style != NULL)
-            printf("  -> <%lu> [%s:%s] (%s)\n", way->id, outer_style->key, outer_style->value, rel->members[i].role);
-          else
-            printf("  -> <%lu> [:] (%s)\n", way->id, rel->members[i].role);
-          */
         }
       }
 
       //if(relation_style != NULL) printf("STYLE Relation = [%s:%s]\n", relation_style->key, relation_style->value);
       //if(outer_style != NULL) printf("STYLE Outer = [%s:%s]\n", outer_style->key, outer_style->value);
 
-      // AFFICHAGE DES MEMBRES OUTER
+      /* AFFICHAGE DES MEMBRES OUTER */
 
       // Si la relation à plusieurs membres OUTER
       if(nb_outer > 1){
@@ -443,7 +419,7 @@ void drawNode(SDL_Renderer *ren, OSM_Node *node){
   int longitude = lon2x(node->lon);
   int latitude = lat2y(node->lat);
 
-  int onScreen = pointIsOnScreen(longitude, latitude);
+  int onScreen = pointIsOnScreen(longitude, latitude, SCREEN_W, SCREEN_H);
   if(onScreen){
     if(node->nb_tag > 0){
       for(int i=0; i<node->nb_tag; i++){
@@ -469,112 +445,13 @@ void drawOSM_ABR(ABR_Node *tree){
   if(tree->right) drawOSM_ABR(tree->right);
 }
 
-/* Initialisation de la vue et des paramètres */
-void OSM_Rendering(SDL_Window *pWindow, int w, int h, OSM_Data *_data){
-	data = _data;
-	SCREEN_W = w;
-	SCREEN_H = h;
-  REF_X = SCREEN_W / 2;
-  REF_Y = SCREEN_H / 2;
-
-  // Calcul du ratio permetant une couverture complète de la fenêtre
-  INTERVAL_X = lon2x_m(data->bounds->maxlon) - lon2x_m(data->bounds->minlon);
-  INTERVAL_Y = lat2y_m(data->bounds->maxlat) - lat2y_m(data->bounds->minlat);
-
-  double ratio_X = SCREEN_W / INTERVAL_X;
-  double ratio_Y = SCREEN_H / INTERVAL_Y;
-
-  if(ratio_X > ratio_Y) INIT_SCALE = ratio_X;
-  else INIT_SCALE = ratio_Y;
-
-  INIT_SCALE = ceil(INIT_SCALE * 10)/10;
-  SCALE = INIT_SCALE;
-
-  /* Ouverture du fichier de styles */
-  openStyleSheet("styles.txt");
-  LoadImages();
-
-  // Création du tas de priorités min
-  minHeap priority_heap = initMinHeap(data->nb_way);
-  CreateHeapPriority(&priority_heap, data);
-
-  // Remplissage de la liste dans l'ordre de priorité
-  _ways_by_prio = malloc(data->nb_way * sizeof(OSM_Way*));
-
-  for(int i=0; i<data->nb_way; i++){
-    _ways_by_prio[i] = getHead(&priority_heap);
-    deleteNode(&priority_heap);
+/* Affichage d'un polygone avec anti-aliasing */
+void _aapolygonRGBA(SDL_Renderer *renderer, const Sint16 *vx, const Sint16 *vy, int n, Uint8 r, Uint8 g, Uint8 b, Uint8 a){
+  for(int i=0; i < n-1; i++){
+    aalineRGBA(renderer, vx[i], vy[i], vx[i+1], vy[i+1], r, g, b, a);
   }
-  deleteMinHeap(&priority_heap);
-
-	/* Création du renderer */
-  CreateRenderer(pWindow);
-  RefreshView();
+  aalineRGBA(renderer, vx[n-1], vy[n-1], vx[0], vy[0], r, g, b, a);
 }
-
-void RefreshView(){
-  SDL_SetRenderDrawColor(ren, 232, 229, 223, 255);
-  SDL_RenderClear(ren); // Clear la fenêtre
-
-
-  // Affichage des membres OUTTER des relations
-  for(int i=0; i < data->nb_relation; i++){
-    drawRelationOuter(ren, &data->relations[i]);
-  }
-
-  // Affichage des ways en fonction de leur priorité
-  for(int i=0; i<data->nb_way; i++){
-    drawWay(ren, _ways_by_prio[i]);
-  }
-
-  // Affichage des membres INNER des relations
-  for(int i=0; i < data->nb_relation; i++){
-    drawRelationInner(ren, &data->relations[i]);
-  }
-
-  // Affichage des nodes
-  for(int i=0; i<data->nb_node; i++){
-    drawNode(ren, &data->nodes[i]);
-  }
-
-  // Affichage texte ------------------------------
-  //SDL_Color black = {0, 0, 0}; 
-  //drawTexte(ren, 200, 200, 100, 50, "fonts/times.ttf", 80, "texte", &black);
-  //  ----------------------------------------------*/
-
-  SDL_RenderPresent(ren); // Affiche les modifications
-}
-
-/* Création d'un tas de priorité minimum */
-void CreateHeapPriority(minHeap *hp, OSM_Data* data){
-  int priorite = 0;
-  char *tag = "";
-  char *value = "";
-
-  for(int i=0; i< data->nb_way; i++){
-    priorite = 99;
-
-    if(data->ways[i].nb_tag > 0){
-      for(int j=0; j < data->ways[i].nb_tag; j++){
-
-        tag = data->ways[i].tags[j].k;
-        value = data->ways[i].tags[j].v;
-        STYLE_ENTRY *style = getStyleOf(tag, value);
-
-        if(style != NULL){
-          priorite = style->priority;
-          break;
-        }
-      }
-    } insertNode(hp, priorite, &data->ways[i]);
-  }
-}
-
-/* Formule de mercator */
-double y2lat_m(double y) { return rad2deg(2 * atan(exp( (y / earth_radius ) )) - M_PI/2); }
-double x2lon_m(double x) { return rad2deg(x / earth_radius); }
-double lat2y_m(double lat) { return earth_radius * log(tan(M_PI/4+ deg2rad(lat)/2)); }
-double lon2x_m(double lon) { return deg2rad(lon) * earth_radius; }
 
 /* Retourne le pixel X en fonction de la longitude */
 int lon2x(double lon){
@@ -584,14 +461,6 @@ int lon2x(double lon){
 /* Retourne le pixel Y en fonction de la latitude */
 int lat2y(double lat){
   return SCREEN_H - (REF_Y + (lat2y_m(lat) - lat2y_m(data->bounds->minlat) - (INTERVAL_Y / 2)) * SCALE);
-}
-
-/* Affichage d'un polygone avec anti-aliasing */
-void _aapolygonRGBA(SDL_Renderer *renderer, const Sint16 *vx, const Sint16 *vy, int n, Uint8 r, Uint8 g, Uint8 b, Uint8 a){
-  for(int i=0; i < n-1; i++){
-    aalineRGBA(renderer, vx[i], vy[i], vx[i+1], vy[i+1], r, g, b, a);
-  }
-  aalineRGBA(renderer, vx[n-1], vy[n-1], vx[0], vy[0], r, g, b, a);
 }
 
 /* Augmente l'échelle */
@@ -628,53 +497,4 @@ void moveRIGTH(){
 void moveLEFT(){
   REF_X += MOVE;
   RefreshView();
-}
-
-/* Test la présence d'un polygone dans la fenêtre */
-int polyIsOnScreen(Sint16 *vx, Sint16 *vy, int size){
-  int nb_points_out = 0;
-  for(int i=0; i<size; i++){
-    if( (vx[i] < 0 || vx[i] > SCREEN_W) || (vy[i] < 0 || vy[i] > SCREEN_H))
-      nb_points_out++;
-  }
-
-  if(nb_points_out == size)
-    return 0;
-  else
-    return 1;
-}
-
-/* Test la présence d'une ligne dans la fenêtre */
-int lineIsOnScreen(int x1, int y1, int x2, int y2){
-  if(((x1 >= 0 || x1 <= SCREEN_W) && (x2 >= 0 || x2 <= SCREEN_W)) || ((y1 >= 0 || y1 <= SCREEN_H) && (y2 >= 0 || y2 <= SCREEN_H)))
-    return 1;
-  else return 0;
-}
-
-/* Test la présence d'un point dans la fenêtre */
-int pointIsOnScreen(int x, int y){
-  if( (x >= 0 || x <= SCREEN_W) && (y >= 0 || y <= SCREEN_H) )
-    return 1;
-  else return 0;
-}
-
-/* Test si le node contient le tag */
-int containTag(OSM_Tag *tags, int nb_tag, char *key, char *value){
-  if(nb_tag > 0){
-    for(int i=0; i < nb_tag; i++){
-      if(strcmp(key,tags[i].k) == 0 && strcmp(value,tags[i].v) == 0){
-        return 1;
-      }
-    }
-  }
-  return 0;
-}
-
-/* Test si la relation ne contient pas de membres NULL*/
-int relationIsComplete(OSM_Relation *rel){
-  for(int i=0; i < rel->nb_member; i++){
-    if(strcmp(rel->members[i].role, "outer") == 0 && rel->members[i].type & OSM_MEMBER_REF_ID_BIT)
-      return 0;
-  }
-  return 1;
 }
